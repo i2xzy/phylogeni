@@ -1,44 +1,21 @@
-export type XsdString = {
-  '@type': 'xsd:string';
-  '@value': string;
-};
+import { Database } from './supabase';
 
-export type XsdDecimal = {
-  '@type': 'xsd:decimal';
-  '@value': number;
-};
+export type Status = Database['public']['Enums']['transaction_status'];
 
-export type TrueFalse = '@schema:TrueFalse/True' | '@schema:TrueFalse/False';
+export type Mode = Database['public']['Enums']['transaction_mode'];
 
-export type Clade = {
-  id: string;
-  name: XsdString;
-  rank?: XsdString;
-  extant?: TrueFalse;
-  parent?: string;
-  ott_id?: XsdString;
-  common_name?: XsdString;
-};
+export type Clade = Database['public']['Tables']['clades']['Row'];
 
-export type Result<T> = {
-  bindings: T[];
-};
+export type User = Database['public']['Tables']['users_old']['Row'];
 
-export type Node = {
-  id: string;
-  name: string;
-  commonNames?: string;
-  rank?: string;
-  extant?: string;
-  ott_id: string;
-};
+export type Transaction =
+  Database['public']['Tables']['transactions_old']['Row'] & {
+    before: Partial<Clade> | null;
+    after: Partial<Clade> | null;
+    mode: Mode;
+    status: Status;
+  };
 
-export type NodeDetails = Node & {
-  parent?: string;
-  parentName?: string;
-  sources?: {
-    name: string;
-    id: string;
-    link: string | null;
-  }[];
-};
+export interface TransactionWithUser extends Omit<Transaction, 'user'> {
+  user: Pick<User, 'id' | 'username'> | null;
+}

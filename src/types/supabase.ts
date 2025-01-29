@@ -117,9 +117,9 @@ export type Database = {
           created: string | null;
           id: string;
           identifier: string | null;
-          mode: string | null;
-          status: string | null;
-          user: string | null;
+          mode: Database['public']['Enums']['transaction_mode'];
+          status: Database['public']['Enums']['transaction_status'];
+          user: string;
         };
         Insert: {
           after?: Json | null;
@@ -127,9 +127,9 @@ export type Database = {
           created?: string | null;
           id: string;
           identifier?: string | null;
-          mode?: string | null;
-          status?: string | null;
-          user?: string | null;
+          mode: Database['public']['Enums']['transaction_mode'];
+          status?: Database['public']['Enums']['transaction_status'];
+          user: string;
         };
         Update: {
           after?: Json | null;
@@ -137,11 +137,19 @@ export type Database = {
           created?: string | null;
           id?: string;
           identifier?: string | null;
-          mode?: string | null;
-          status?: string | null;
-          user?: string | null;
+          mode?: Database['public']['Enums']['transaction_mode'];
+          status?: Database['public']['Enums']['transaction_status'];
+          user?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'transactions_old_user_fkey';
+            columns: ['user'];
+            isOneToOne: false;
+            referencedRelation: 'users_old';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       users_old: {
         Row: {
@@ -230,6 +238,8 @@ export type Database = {
     };
     Enums: {
       role: 'viewer' | 'editor' | 'curator' | 'admin';
+      transaction_mode: 'CREATE' | 'DESTROY' | 'UPDATE';
+      transaction_status: 'DONE' | 'FAILED' | 'REVIEW';
     };
     CompositeTypes: {
       [_ in never]: never;
