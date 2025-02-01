@@ -12,7 +12,8 @@ const getRevisions = async (id: string): Promise<TransactionWithUser[]> => {
     *,
     users_old (id, username)`
     )
-    .eq('identifier', id);
+    .eq('identifier', id)
+    .eq('status', 'DONE');
 
   type TransactionsWithUsers = QueryData<typeof transactionsWithUsersQuery>;
 
@@ -21,8 +22,6 @@ const getRevisions = async (id: string): Promise<TransactionWithUser[]> => {
   if (error) throw error;
 
   const transactionsWithUsers: TransactionsWithUsers = data;
-
-  console.log(data);
 
   const txsWithUsers = transactionsWithUsers.map((item) => ({
     ...item,

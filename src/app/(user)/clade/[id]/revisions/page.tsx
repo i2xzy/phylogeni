@@ -15,6 +15,7 @@ export default async function CladeEditPage({
   const { include_children } = (await searchParams) || false;
 
   if (include_children) {
+    //TODO: Get history from all child nodes
   }
 
   const txsWithUsers = await getRevisions(id);

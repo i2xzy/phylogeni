@@ -27,7 +27,7 @@ import { SegmentedControl } from '~/components/ui/segmented-control';
 import ChangesDialog from './ChangesDialog';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { Mode, Status, TransactionWithUser } from '~/types/database';
+import { Clade, Mode, TransactionWithUser } from '~/types/database';
 
 export const CladeHistoryTable = ({
   rows,
@@ -82,16 +82,29 @@ export const CladeHistoryTable = ({
     router.push(`/clade/${cladeId}/revisions?${newSearchParams.toString()}`);
   };
 
+  const cladeDiff = (
+    clade1: Partial<Clade> | null,
+    clade2: Partial<Clade> | null
+  ) => {
+    const result: Array<string | boolean | null> = [];
+    if (clade1 && clade2) {
+      const c1 = Object.values(clade1);
+      const c2 = Object.values(clade2);
+
+      c2.map((val, i) => {
+        if (c1[i] !== val) {
+          result.push(val);
+        }
+      });
+    }
+
+    return result;
+  };
+
   const colorsMode: Record<Mode, string> = {
     CREATE: 'green',
     DESTROY: 'red',
     UPDATE: 'blue',
-  };
-
-  const colorsStatus: Record<Status, string> = {
-    DONE: 'green',
-    FAILED: 'red',
-    REVIEW: 'yellow',
   };
 
   return (
@@ -168,7 +181,6 @@ export const CladeHistoryTable = ({
               <Table.ColumnHeader>Clade</Table.ColumnHeader>
               <Table.ColumnHeader>Change type</Table.ColumnHeader>
               <Table.ColumnHeader>Change details</Table.ColumnHeader>
-              <Table.ColumnHeader>Status</Table.ColumnHeader>
               <Table.ColumnHeader textAlign="end">Date</Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
@@ -184,7 +196,7 @@ export const CladeHistoryTable = ({
                 <Table.Cell>
                   <Badge
                     colorPalette={colorsMode[item.mode]}
-                    variant={'surface'}
+                    variant={'outline'}
                   >
                     {item.mode}
                   </Badge>
@@ -195,19 +207,11 @@ export const CladeHistoryTable = ({
                       item={item}
                       text={
                         item.mode === 'UPDATE'
-                          ? 'See changes made'
+                          ? `See ${Object.entries(cladeDiff(item.after, item.before)).length} changes`
                           : `See ${item.mode === 'CREATE' ? 'created' : 'deleted'} clade`
                       }
                     ></ChangesDialog>
                   }
-                </Table.Cell>
-                <Table.Cell>
-                  <Badge
-                    colorPalette={colorsStatus[item.status]}
-                    variant={'outline'}
-                  >
-                    {item.status}
-                  </Badge>
                 </Table.Cell>
                 <Table.Cell textAlign="end">
                   {item.created && new Date(item.created).toDateString()}

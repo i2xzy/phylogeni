@@ -1,31 +1,25 @@
-import { Box, Text } from '@chakra-ui/react';
+import { Card, DataList } from '@chakra-ui/react';
+import { DataListItem } from '~/components/ui/data-list';
 import React from 'react';
-import { Json } from '~/types/supabase';
+import { Clade } from '~/types/database';
 
-function CladeChangeBox({ obj, name }: { obj: Json; name: string }) {
+function CladeChangeBox({ clade }: { clade: Partial<Clade> | null }) {
   return (
-    <Box maxWidth={'47%'}>
-      <Text marginBottom={'.8em'}>{name}</Text>
-      <Box
-        fontWeight={'light'}
-        background={'gray.900'}
-        padding={2}
-        border={'solid'}
-        borderWidth={1}
-        borderColor={'gray.800'}
-        borderRadius={'2px'}
-      >
-        {obj &&
-          Object.entries(obj).map((entry) => (
-            <>
-              <Text fontWeight={'medium'}>{`${entry[0]}:`}</Text>{' '}
-              <Text>
-                {entry[1] === null ? 'NULL' : JSON.stringify(entry[1])}
-              </Text>
-            </>
-          ))}
-      </Box>
-    </Box>
+    <Card.Root width={'100%'}>
+      {clade && (
+        <Card.Body>
+          <DataList.Root size={'sm'}>
+            {Object.entries(clade).map((item) => (
+              <DataListItem
+                key={item[0]}
+                label={item[0]}
+                value={item[1]?.toString() || 'NULL'}
+              />
+            ))}
+          </DataList.Root>
+        </Card.Body>
+      )}
+    </Card.Root>
   );
 }
 

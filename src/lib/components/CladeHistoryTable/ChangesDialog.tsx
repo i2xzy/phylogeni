@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Badge } from '@chakra-ui/react';
+import { Box, Badge, Text, Stack } from '@chakra-ui/react';
 import React from 'react';
 import { FaCaretRight } from 'react-icons/fa';
 import { Button } from '~/components/ui/button';
@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from '~/components/ui/dialog';
 import CladeChangeBox from './CladeChangeBox';
-import { TransactionWithUser, Status } from '~/types/database';
+import { TransactionWithUser, Mode } from '~/types/database';
 
 const ChangesDialog = ({
   item,
@@ -23,10 +23,10 @@ const ChangesDialog = ({
   item: TransactionWithUser;
   text: string;
 }) => {
-  const colorsStatus: Record<Status, string> = {
-    DONE: 'green',
-    FAILED: 'red',
-    REVIEW: 'yellow',
+  const colorsMode: Record<Mode, string> = {
+    CREATE: 'green',
+    DESTROY: 'red',
+    UPDATE: 'blue',
   };
 
   return (
@@ -34,7 +34,7 @@ const ChangesDialog = ({
       key={item.id}
       placement={'center'}
       motionPreset="slide-in-bottom"
-      size={'lg'}
+      size={'xl'}
     >
       <DialogTrigger asChild>
         <Button unstyled _hover={{ color: 'teal' }}>
@@ -42,20 +42,48 @@ const ChangesDialog = ({
         </Button>
       </DialogTrigger>
       <DialogContent width={''}>
-        <DialogHeader display={'flex'} gap={'.8rem'} alignItems={'center'}>
-          <DialogTitle>{`Changes by ${item.user}`}</DialogTitle>
-          <Badge
-            size={'lg'}
-            colorPalette={colorsStatus[item.status]}
-            variant={'outline'}
-          >
-            {item.status}
-          </Badge>{' '}
-          :
+        <DialogHeader>
+          <Stack>
+            <Box
+              display={'flex'}
+              gap={'.8rem'}
+              alignItems={'center'}
+              justifyContent={'space-between'}
+            >
+              <DialogTitle>{`Changes by ${item.user?.username}`}</DialogTitle>
+            </Box>
+
+            <Box
+              display={'flex'}
+              alignItems={'center'}
+              justifyContent={'space-between'}
+            >
+              <Box display={'flex'} alignItems={'center'} gap={'.5rem'}>
+                <Badge
+                  size={'lg'}
+                  colorPalette={colorsMode[item.mode]}
+                  variant={'subtle'}
+                  marginRight={'.5rem'}
+                >
+                  {item.mode}
+                </Badge>
+
+                <Text fontSize={'md'} fontWeight={'light'} color={'gray.400'}>
+                  {item.before?.name} ({item.id})
+                </Text>
+              </Box>
+
+              <Box>
+                <Text color={'gray.400'}>
+                  {item.created && new Date(item.created).toDateString()}
+                </Text>
+              </Box>
+            </Box>
+          </Stack>
         </DialogHeader>
         <DialogBody display={'flex'} justifyContent={'center'}>
           {JSON.stringify(item.before) !== '{}' && (
-            <CladeChangeBox name={'Clade before'} obj={item.before} />
+            <CladeChangeBox clade={item.before} />
           )}
 
           {JSON.stringify(item.before) !== '{}' &&
@@ -72,7 +100,7 @@ const ChangesDialog = ({
             )}
 
           {JSON.stringify(item.after) !== '{}' && (
-            <CladeChangeBox name={'Clade after'} obj={item.after} />
+            <CladeChangeBox clade={item.after} />
           )}
         </DialogBody>
         {/* <DialogFooter>
