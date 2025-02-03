@@ -63,7 +63,9 @@ export const CladeHistoryTable = ({
     const filterRows = (tx: TransactionWithUser) =>
       tx.user?.id?.includes(value) ||
       tx.identifier?.includes(value) ||
-      tx.user?.username?.includes(value);
+      tx.user?.username?.toLowerCase().includes(value.toLowerCase()) ||
+      tx.after?.name?.toLowerCase().includes(value.toLowerCase()) ||
+      tx.after?.otherNames?.toLowerCase().includes(value.toLowerCase());
     setSearchText(value);
     setFilteredRows(rows.filter(filterRows));
   };
@@ -86,14 +88,14 @@ export const CladeHistoryTable = ({
     clade1: Partial<Clade> | null,
     clade2: Partial<Clade> | null
   ) => {
-    const result: Array<string | boolean | null> = [];
+    const result: Record<string, string | boolean | null> = {};
     if (clade1 && clade2) {
-      const c1 = Object.values(clade1);
-      const c2 = Object.values(clade2);
+      const c1 = Object(clade1);
+      const c2 = Object.entries(clade2);
 
-      c2.map((val, i) => {
-        if (c1[i] !== val) {
-          result.push(val);
+      c2.map(([k, v]) => {
+        if (c1[k] !== v) {
+          result[k] = v;
         }
       });
     }
@@ -187,7 +189,17 @@ export const CladeHistoryTable = ({
           <Table.Body>
             {currentRows?.map((item) => (
               <Table.Row key={item.id}>
-                <Table.Cell>{item.user?.username}</Table.Cell>
+                <Table.Cell>
+                  <Text
+                    _hover={{ color: 'teal' }}
+                    cursor={'pointer'}
+                    onClick={() =>
+                      item.user?.username && handleSearch(item.user?.username)
+                    }
+                  >
+                    {item.user?.username}
+                  </Text>
+                </Table.Cell>
                 <Table.Cell _hover={{ color: 'teal' }}>
                   <Link href={`/clade/${item.identifier}`}>
                     {item.before?.name || item.after?.name || item.identifier}
@@ -202,16 +214,14 @@ export const CladeHistoryTable = ({
                   </Badge>
                 </Table.Cell>
                 <Table.Cell>
-                  {
-                    <ChangesDialog
-                      item={item}
-                      text={
-                        item.mode === 'UPDATE'
-                          ? `See ${Object.entries(cladeDiff(item.after, item.before)).length} changes`
-                          : `See ${item.mode === 'CREATE' ? 'created' : 'deleted'} clade`
-                      }
-                    ></ChangesDialog>
-                  }
+                  <ChangesDialog
+                    item={item}
+                    text={
+                      item.mode === 'UPDATE'
+                        ? `See ${Object.keys(cladeDiff(item.after, item.before)).length} changes to ${Object.keys(cladeDiff(item.after, item.before))}`
+                        : `See ${item.mode === 'CREATE' ? 'created' : 'deleted'} clade`
+                    }
+                  ></ChangesDialog>
                 </Table.Cell>
                 <Table.Cell textAlign="end">
                   {item.created && new Date(item.created).toDateString()}

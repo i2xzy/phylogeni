@@ -43,7 +43,7 @@ const ChangesDialog = ({
       </DialogTrigger>
       <DialogContent width={''}>
         <DialogHeader>
-          <Stack>
+          <Stack paddingX={'.6rem'}>
             <Box
               display={'flex'}
               gap={'.8rem'}
@@ -69,7 +69,7 @@ const ChangesDialog = ({
                 </Badge>
 
                 <Text fontSize={'md'} fontWeight={'light'} color={'gray.400'}>
-                  {item.before?.name} ({item.id})
+                  {item.before?.name} ({item.identifier})
                 </Text>
               </Box>
 
@@ -100,7 +100,10 @@ const ChangesDialog = ({
             )}
 
           {JSON.stringify(item.after) !== '{}' && (
-            <CladeChangeBox clade={item.after} />
+            <CladeChangeBox
+              clade={Object(item.after)}
+              other={Object(item.before)}
+            />
           )}
         </DialogBody>
         {/* <DialogFooter>

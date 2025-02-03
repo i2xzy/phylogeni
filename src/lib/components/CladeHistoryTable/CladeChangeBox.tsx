@@ -3,17 +3,57 @@ import { DataListItem } from '~/components/ui/data-list';
 import React from 'react';
 import { Clade } from '~/types/database';
 
-function CladeChangeBox({ clade }: { clade: Partial<Clade> | null }) {
+const FieldItem = ({
+  fieldName,
+  field,
+  otherField,
+}: {
+  fieldName: string;
+  field?: string | boolean | null;
+  otherField?: string | boolean | null;
+}) => (
+  <DataListItem
+    borderRadius={'4px'}
+    padding={'8px'}
+    border={otherField && field !== otherField ? 'teal 1px dashed' : ''}
+    key={fieldName}
+    label={fieldName}
+    value={field}
+  />
+);
+
+function CladeChangeBox({
+  clade,
+  other,
+}: {
+  clade: Partial<Clade> | null;
+  other?: Partial<Clade> | null;
+}) {
+  const cladeFields = {
+    Name: [JSON.stringify(clade?.name), JSON.stringify(other?.name)],
+    Synonyms: [
+      JSON.stringify(clade?.otherNames),
+      JSON.stringify(other?.otherNames),
+    ],
+    Extant: [JSON.stringify(clade?.extant), JSON.stringify(other?.extant)],
+    Parent: [JSON.stringify(clade?.parent), JSON.stringify(clade?.parent)],
+    Description: [
+      JSON.stringify(clade?.description),
+      JSON.stringify(other?.description),
+    ],
+  };
+
   return (
     <Card.Root width={'100%'}>
       {clade && (
         <Card.Body>
           <DataList.Root size={'sm'}>
-            {Object.entries(clade).map((item) => (
-              <DataListItem
-                key={item[0]}
-                label={item[0]}
-                value={item[1]?.toString() || 'NULL'}
+            {Object.entries(cladeFields).map(([k, v]) => (
+              <FieldItem
+                key={clade.id}
+                fieldName={k}
+                field={v[0]}
+                otherField={v[1]}
               />
             ))}
           </DataList.Root>
