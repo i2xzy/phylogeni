@@ -36,7 +36,7 @@ function CladeChangeBox({
       JSON.stringify(other?.otherNames),
     ],
     Extant: [JSON.stringify(clade?.extant), JSON.stringify(other?.extant)],
-    Parent: [JSON.stringify(clade?.parent), JSON.stringify(clade?.parent)],
+    Parent: [JSON.stringify(clade?.parent), JSON.stringify(other?.parent)],
     Description: [
       JSON.stringify(clade?.description),
       JSON.stringify(other?.description),
