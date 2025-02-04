@@ -84,7 +84,7 @@ export const CladeHistoryTable = ({
     router.push(`/clade/${cladeId}/revisions?${newSearchParams.toString()}`);
   };
 
-  const cladeDiff = (
+  const CladeDiff = (
     clade1: Partial<Clade> | null,
     clade2: Partial<Clade> | null
   ) => {
@@ -218,7 +218,7 @@ export const CladeHistoryTable = ({
                     item={item}
                     text={
                       item.mode === 'UPDATE'
-                        ? `See ${Object.keys(cladeDiff(item.after, item.before)).length} changes to ${Object.keys(cladeDiff(item.after, item.before))}`
+                        ? `See ${Object.keys(CladeDiff(item.after, item.before)).length} changes to ${Object.keys(CladeDiff(item.after, item.before))}`
                         : `See ${item.mode === 'CREATE' ? 'created' : 'deleted'} clade`
                     }
                   ></ChangesDialog>
