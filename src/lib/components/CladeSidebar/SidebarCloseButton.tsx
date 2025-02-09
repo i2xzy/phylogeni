@@ -1,8 +1,7 @@
 'use client';
 
+import { CloseButton } from '@chakra-ui/react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-
-import { CloseButton } from '~/components/ui/close-button';
 
 const SidebarCloseButton = () => {
   const router = useRouter();

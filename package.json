@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@ark-ui/react": "^4.8.0",
-    "@chakra-ui/react": "3.5.0",
+    "@chakra-ui/react": "3.8.0",
     "@emailjs/browser": "^4.3.3",
     "@emotion/react": "^11.13.3",
     "@supabase/ssr": "^0.3.0",
