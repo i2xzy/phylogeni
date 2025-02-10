@@ -32,56 +32,56 @@ const ChangesDialog = ({
   return (
     <DialogRoot
       key={item.id}
-      placement={'center'}
+      placement="center"
       motionPreset="slide-in-bottom"
-      size={'xl'}
+      size="xl"
     >
       <DialogTrigger asChild>
         <Button unstyled _hover={{ color: 'teal' }}>
           {text}
         </Button>
       </DialogTrigger>
-      <DialogContent width={''}>
+      <DialogContent width="">
         <DialogHeader>
-          <Stack paddingX={'.6rem'}>
+          <Stack paddingX=".6rem">
             <Box
-              display={'flex'}
-              gap={'.8rem'}
-              alignItems={'center'}
-              justifyContent={'space-between'}
+              display="flex"
+              gap=".8rem"
+              alignItems="center"
+              justifyContent="space-between"
             >
               <DialogTitle>{`Changes by ${item.user?.username}`}</DialogTitle>
             </Box>
 
             <Box
-              display={'flex'}
-              alignItems={'center'}
-              justifyContent={'space-between'}
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
             >
-              <Box display={'flex'} alignItems={'center'} gap={'.5rem'}>
+              <Box display="flex" alignItems="center" gap=".5rem">
                 <Badge
-                  size={'lg'}
+                  size="lg"
                   colorPalette={colorsMode[item.mode]}
-                  variant={'subtle'}
-                  marginRight={'.5rem'}
+                  variant="subtle"
+                  marginRight=".5rem"
                 >
                   {item.mode}
                 </Badge>
 
-                <Text fontSize={'md'} fontWeight={'light'} color={'gray.400'}>
+                <Text fontSize="md" fontWeight="light" color="gray.400">
                   {item.before?.name} ({item.identifier})
                 </Text>
               </Box>
 
               <Box>
-                <Text color={'gray.400'}>
+                <Text color="gray.400">
                   {item.created && new Date(item.created).toDateString()}
                 </Text>
               </Box>
             </Box>
           </Stack>
         </DialogHeader>
-        <DialogBody display={'flex'} justifyContent={'center'}>
+        <DialogBody display="flex" justifyContent="center">
           {JSON.stringify(item.before) !== '{}' && (
             <CladeChangeBox clade={item.before} />
           )}
@@ -90,10 +90,10 @@ const ChangesDialog = ({
             JSON.stringify(item.after) !== '{}' && (
               <Box
                 paddingY={4}
-                display={'flex'}
-                justifyContent={'center'}
-                alignContent={'center'}
-                alignItems={'center'}
+                display="flex"
+                justifyContent="center"
+                alignContent="center"
+                alignItems="center"
               >
                 <FaCaretRight size={30} />
               </Box>

@@ -112,59 +112,72 @@ export const CladeHistoryTable = ({
   return (
     <Stack width="full" gap="5">
       <Box
-        display={'flex'}
-        justifyContent={'space-between'}
-        alignItems={'center'}
+        display="flex"
+        xlDown={{ display: 'block' }}
+        justifyContent="space-between"
+        alignItems="center"
       >
-        <div>
+        <Box xlDown={{ marginBottom: '1.8rem' }}>
           <Heading size="xl">Clade Revision History</Heading>
-          <Box display={'flex'} gap={'4px'}>
+          <Box display="flex" gap="4px">
             <Text
-              color={'rgba(255,255,255,.5)'}
-              fontWeight={'medium'}
+              _dark={{ color: 'rgba(255,255,255,.5)' }}
+              _light={{ color: 'rgba(20,20,20,0.5)' }}
+              fontWeight="medium"
               fontSize={15}
             >
-              {rows.length} changes made to
+              {`${rows.length} ${rows.length === 1 ? 'change' : 'changes'} made to`}
             </Text>
-            <Text color={'teal'} fontWeight={'medium'} fontSize={15}>
+            <Text color="teal" fontWeight="medium" fontSize={15}>
               {cladeName}
             </Text>
           </Box>
-        </div>
-
-        <Box alignContent={'center'}>
-          <SegmentedControl
-            size={'md'}
-            defaultValue="All"
-            items={['All', 'CREATE', 'UPDATE', 'DESTROY']}
-            value={changeTypeFilter}
-            onValueChange={(e) => handleModeFilter(e.value)}
-          />
         </Box>
 
         <Box
-          gap={'2rem'}
-          display={'flex'}
-          justifyContent={'center'}
-          alignItems={'center'}
+          xlDown={{ justifyContent: 'space-between' }}
+          display="flex"
+          lgDown={{ display: 'block' }}
+          alignItems="center"
+          gap="2rem"
+          mdDown={{ gap: '.5rem' }}
         >
-          <Checkbox
-            checked={checked}
-            onCheckedChange={handleChecked}
-            fontWeight={'light'}
-            color={'gray'}
+          <Box
+            display="flex"
+            lgDown={{ justifyContent: 'space-between', gap: '.5rem' }}
+            gap="2rem"
           >
-            Show child nodes
-          </Checkbox>
+            <SegmentedControl
+              size="md"
+              defaultValue="All"
+              items={['All', 'CREATE', 'UPDATE', 'DESTROY']}
+              value={changeTypeFilter}
+              onValueChange={(e) => handleModeFilter(e.value)}
+            />
 
-          <InputGroup width={'18rem'} endElement={<RiSearchLine />}>
+            <Checkbox
+              checked={checked}
+              onCheckedChange={handleChecked}
+              fontWeight="light"
+              color="gray"
+            >
+              Show child nodes
+            </Checkbox>
+          </Box>
+
+          <InputGroup
+            width="18rem"
+            endElement={<RiSearchLine />}
+            lgDown={{ marginTop: '1rem', width: 'full' }}
+            mdDown={{ width: 'full' }}
+          >
             <Input
               placeholder={'Search editor, clade, organism...'}
               onChange={(e) => {
                 e.preventDefault();
                 handleSearch(e.target.value);
               }}
-              defaultValue={''}
+              defaultValue=""
               value={searchText}
             />
           </InputGroup>
@@ -175,7 +188,8 @@ export const CladeHistoryTable = ({
           size="sm"
           variant="outline"
           interactive
-          color={'rgba(255,255,255,.7)'}
+          _dark={{ color: 'rgba(255,255,255,.7)' }}
+          _light={{ color: 'rgba(20,20,20,.7)' }}
         >
           <Table.Header>
             <Table.Row>
@@ -192,7 +206,7 @@ export const CladeHistoryTable = ({
                 <Table.Cell>
                   <Text
                     _hover={{ color: 'teal' }}
-                    cursor={'pointer'}
+                    cursor="pointer"
                     onClick={() =>
                       item.user?.username && handleSearch(item.user?.username)
                     }
@@ -206,10 +220,7 @@ export const CladeHistoryTable = ({
                   </Link>
                 </Table.Cell>
                 <Table.Cell>
-                  <Badge
-                    colorPalette={colorsMode[item.mode]}
-                    variant={'outline'}
-                  >
+                  <Badge colorPalette={colorsMode[item.mode]} variant="outline">
                     {item.mode}
                   </Badge>
                 </Table.Cell>
@@ -245,7 +256,7 @@ export const CladeHistoryTable = ({
       >
         <HStack wrap="wrap">
           <PaginationPageText
-            color={'rgba(255,255,255,.7)'}
+            color="rgba(255,255,255,.7)"
             format="long"
             flex="1"
           />

@@ -13,8 +13,8 @@ const FieldItem = ({
   otherField?: string | boolean | null;
 }) => (
   <DataListItem
-    borderRadius={'4px'}
-    padding={'8px'}
+    borderRadius="4px"
+    padding="8px"
     border={otherField && field !== otherField ? 'teal 1px dashed' : ''}
     key={fieldName}
     label={fieldName}
@@ -44,10 +44,10 @@ function CladeChangeBox({
   };
 
   return (
-    <Card.Root width={'100%'}>
+    <Card.Root width="100%">
       {clade && (
         <Card.Body>
-          <DataList.Root size={'sm'}>
+          <DataList.Root size="sm">
             {Object.entries(cladeFields).map(([k, v]) => (
               <FieldItem
                 key={clade.id}

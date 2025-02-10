@@ -23,7 +23,7 @@ export default async function CladeEditPage({
   const cladeName = await getCladeById(id);
 
   return (
-    <Box paddingX={'6rem'} marginTop={6}>
+    <Box mdDown={{ paddingX: '0.8rem' }} paddingX="6rem" marginTop={6}>
       <Box>
         {txsWithUsers && (
           <CladeHistoryTable
