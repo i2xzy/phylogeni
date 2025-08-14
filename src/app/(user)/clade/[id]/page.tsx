@@ -105,7 +105,7 @@ export default async function CladePage({
             <NavLink href={`/clade/${data.id}/edit`}>
               <RiEdit2Fill size="1.4em" /> Edit
             </NavLink>
-            <NavLink href={`/clade/${data.id}/revisions`}>
+            <NavLink href={`/clade/${data.id}/history`}>
               <RiHistoryFill size="1.4em" /> History
             </NavLink>
           </Stack>

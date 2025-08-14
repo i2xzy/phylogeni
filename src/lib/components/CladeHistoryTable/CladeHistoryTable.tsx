@@ -128,9 +128,11 @@ export const CladeHistoryTable = ({
             >
               {`${rows.length} ${rows.length === 1 ? 'change' : 'changes'} made to`}
             </Text>
-            <Text color="teal" fontWeight="medium" fontSize={15}>
+            <Link href={`/clade/${cladeId}`}>
+            <Text color="teal.600" _hover={{ color: 'teal.500' }} fontWeight="medium" fontSize={15}>
               {cladeName}
             </Text>
+            </Link>
           </Box>
         </Box>
 
@@ -155,7 +157,9 @@ export const CladeHistoryTable = ({
               onValueChange={(e) => handleModeFilter(e.value)}
             />
 
+            {/* TODO: Add checkbox to show child node records */}
             <Checkbox
+              display='none'
               checked={checked}
               onCheckedChange={handleChecked}
               fontWeight="light"
@@ -225,14 +229,25 @@ export const CladeHistoryTable = ({
                   </Badge>
                 </Table.Cell>
                 <Table.Cell>
-                  <ChangesDialog
-                    item={item}
-                    text={
-                      item.mode === 'UPDATE'
-                        ? `See ${Object.keys(CladeDiff(item.after, item.before)).length} changes to ${Object.keys(CladeDiff(item.after, item.before))}`
-                        : `See ${item.mode === 'CREATE' ? 'created' : 'deleted'} clade`
-                    }
-                  ></ChangesDialog>
+                  <ChangesDialog item={item}>
+                    {item.mode === 'UPDATE' ? (
+                      Object.keys(CladeDiff(item.after, item.before)).length !==
+                      0 ? (
+                        <Box display="flex" gap="2px">
+                          See changes to
+                          {Object.keys(CladeDiff(item.after, item.before)).map(
+                            (field, i) => (
+                              <Badge key={i}>{field}</Badge>
+                            )
+                          )}
+                        </Box>
+                      ) : (
+                        <Box>No visible changes</Box>
+                      )
+                    ) : (
+                      `See ${item.mode === 'CREATE' ? 'created' : 'deleted'} clade`
+                    )}
+                  </ChangesDialog>
                 </Table.Cell>
                 <Table.Cell textAlign="end">
                   {item.created && new Date(item.created).toDateString()}
@@ -246,7 +261,7 @@ export const CladeHistoryTable = ({
       )}
 
       <PaginationRoot
-        count={rowsPerPage * Math.ceil(filteredRows.length / rowsPerPage)}
+        count={filteredRows.length}
         pageSize={rowsPerPage}
         variant="solid"
         onPageChange={(e) => {

@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Badge, Text, Stack } from '@chakra-ui/react';
-import React from 'react';
+import { Box, Badge, Text, Stack, DialogFooter } from '@chakra-ui/react';
+import React, { ReactNode } from 'react';
 import { FaCaretRight } from 'react-icons/fa';
 import { Button } from '~/components/ui/button';
 import {
@@ -18,10 +18,10 @@ import { TransactionWithUser, Mode } from '~/types/database';
 
 const ChangesDialog = ({
   item,
-  text,
+  children,
 }: {
   item: TransactionWithUser;
-  text: string;
+  children: ReactNode;
 }) => {
   const colorsMode: Record<Mode, string> = {
     CREATE: 'green',
@@ -38,7 +38,7 @@ const ChangesDialog = ({
     >
       <DialogTrigger asChild>
         <Button unstyled _hover={{ color: 'teal' }}>
-          {text}
+          {children}
         </Button>
       </DialogTrigger>
       <DialogContent width="">
@@ -106,12 +106,12 @@ const ChangesDialog = ({
             />
           )}
         </DialogBody>
-        {/* <DialogFooter>
-                    <DialogActionTrigger asChild>
-                        <Button variant="outline">Cancel</Button>
-                    </DialogActionTrigger>
-                    <Button>Save</Button>
-                </DialogFooter> */}
+        <DialogFooter justifyContent="flex-start">
+          <Box display="flex" alignItems="center" gap="6px">
+            <Box width="16px" height="16px" border="teal 1px dashed"></Box>
+            <Text color="gray.400">Changed fields</Text>
+          </Box>
+        </DialogFooter>
         <DialogCloseTrigger />
       </DialogContent>
     </DialogRoot>

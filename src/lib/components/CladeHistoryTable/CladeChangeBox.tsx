@@ -14,9 +14,14 @@ const FieldItem = ({
 }) => (
   <DataListItem
     borderRadius="4px"
-    padding="8px"
     border={otherField && field !== otherField ? 'teal 1px dashed' : ''}
     key={fieldName}
+    padding="8px"
+    overflowY="auto"
+    overflowX={'hidden'}
+    wordWrap={'break-word'}
+    maxHeight="160px"
+    maxWidth="100%"
     label={fieldName}
     value={field}
   />
@@ -30,17 +35,11 @@ function CladeChangeBox({
   other?: Partial<Clade> | null;
 }) {
   const cladeFields = {
-    Name: [JSON.stringify(clade?.name), JSON.stringify(other?.name)],
-    Synonyms: [
-      JSON.stringify(clade?.otherNames),
-      JSON.stringify(other?.otherNames),
-    ],
+    Name: [clade?.name, other?.name],
+    Synonyms: [clade?.otherNames, other?.otherNames],
     Extant: [JSON.stringify(clade?.extant), JSON.stringify(other?.extant)],
-    Parent: [JSON.stringify(clade?.parent), JSON.stringify(other?.parent)],
-    Description: [
-      JSON.stringify(clade?.description),
-      JSON.stringify(other?.description),
-    ],
+    Parent: [clade?.parent, other?.parent],
+    Description: [clade?.description, other?.description],
   };
 
   return (

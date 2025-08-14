@@ -14,7 +14,7 @@ const getRevisions = async (id: string): Promise<TransactionWithUser[]> => {
     )
     .eq('identifier', id)
     .eq('status', 'DONE')
-    .order('created');
+    .order('created', { ascending: false });
 
   type TransactionsWithUsers = QueryData<typeof transactionsWithUsersQuery>;
 
