@@ -58,7 +58,7 @@ const ChangesDialog = ({
               alignItems="center"
               justifyContent="space-between"
             >
-              <Box display="flex" alignItems="center" gap=".5rem">
+              <Box display="flex" alignItems="center" gap="4px">
                 <Badge
                   size="lg"
                   colorPalette={colorsMode[item.mode]}
@@ -69,7 +69,7 @@ const ChangesDialog = ({
                 </Badge>
 
                 <Text fontSize="md" fontWeight="light" color="gray.400">
-                  {item.before?.name} ({item.identifier})
+                  {item.after?.name} ({item.identifier})
                 </Text>
               </Box>
 
@@ -83,7 +83,7 @@ const ChangesDialog = ({
         </DialogHeader>
         <DialogBody display="flex" justifyContent="center">
           {JSON.stringify(item.before) !== '{}' && (
-            <CladeChangeBox clade={item.before} />
+            <CladeChangeBox clade={item?.before} />
           )}
 
           {JSON.stringify(item.before) !== '{}' &&
@@ -101,17 +101,19 @@ const ChangesDialog = ({
 
           {JSON.stringify(item.after) !== '{}' && (
             <CladeChangeBox
-              clade={Object(item.after)}
-              other={Object(item.before)}
+              clade={Object(item?.after)}
+              other={Object(item?.before)}
             />
           )}
         </DialogBody>
-        <DialogFooter justifyContent="flex-start">
-          <Box display="flex" alignItems="center" gap="6px">
-            <Box width="16px" height="16px" border="teal 1px dashed"></Box>
-            <Text color="gray.400">Changed fields</Text>
-          </Box>
-        </DialogFooter>
+        {item.mode === 'UPDATE' && (
+          <DialogFooter>
+            <Box display="flex" alignItems="center" gap="6px">
+              <Box width="16px" height="16px" border="teal 1px dashed"></Box>
+              <Text color="gray.400">Changed fields</Text>
+            </Box>
+          </DialogFooter>
+        )}
         <DialogCloseTrigger />
       </DialogContent>
     </DialogRoot>

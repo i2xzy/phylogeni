@@ -14,16 +14,17 @@ const FieldItem = ({
 }) => (
   <DataListItem
     borderRadius="4px"
-    border={otherField && field !== otherField ? 'teal 1px dashed' : ''}
+    border={
+      JSON.stringify(otherField) && field != otherField ? 'teal 1px dashed' : ''
+    }
     key={fieldName}
     padding="8px"
     overflowY="auto"
     overflowX={'hidden'}
-    wordWrap={'break-word'}
     maxHeight="160px"
-    maxWidth="100%"
+    maxWidth={'100%'}
     label={fieldName}
-    value={field}
+    value={field?.toString() || '-'}
   />
 );
 
@@ -37,7 +38,10 @@ function CladeChangeBox({
   const cladeFields = {
     Name: [clade?.name, other?.name],
     Synonyms: [clade?.otherNames, other?.otherNames],
-    Extant: [JSON.stringify(clade?.extant), JSON.stringify(other?.extant)],
+    Extant: [
+      clade?.extant === null ? false : clade?.extant,
+      other?.extant === null ? false : other?.extant,
+    ],
     Parent: [clade?.parent, other?.parent],
     Description: [clade?.description, other?.description],
   };
