@@ -1,7 +1,8 @@
 import { Box, Flex } from '@chakra-ui/react';
 import { Suspense } from 'react';
 
-import getTree from './getSubtree';
+// import getTree from './getSubtree';
+import getTree from './getTreeFromOTT';
 import Sidebar from './sidebar';
 import SidebarSkeleton from './sidebar-skeleton';
 import Dendrogram from './dendrogram';

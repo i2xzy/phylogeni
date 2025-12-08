@@ -15,9 +15,8 @@ import { Avatar } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
 import { Field } from '~/components/ui/field';
 import { createClient } from '~/lib/utils/supabase/client';
-import { LuLogOut } from 'react-icons/lu';
+import { LuLogOut, LuUpload, LuTrash2 } from 'react-icons/lu';
 import { FileUploadRoot } from '~/components/ui/file-upload';
-import { HiUpload } from 'react-icons/hi';
 
 interface Props extends User {
   id: string;
@@ -227,27 +226,27 @@ export default function AccountForm({
             justifyContent={'center'}
           >
             <Button
-              _hover={{ color: '#860111' }}
-              background={'none'}
-              color={'#c23b22'}
               onClick={deleteAvatar}
+              variant="outline"
+              colorPalette="red"
+              size="sm"
+              disabled={!avatar_url}
             >
+              <LuTrash2 />
               Remove avatar
             </Button>
 
-            <Box width={'max-content'}>
-              <FileUploadRoot
-                accept={'image/*'}
-                ref={avatarRef}
-                onChange={updateImage}
-              >
-                <FileUploadTrigger asChild>
-                  <Button id="AvatarFileUpload" variant="outline" size="sm">
-                    <HiUpload /> Upload image
-                  </Button>
-                </FileUploadTrigger>
-              </FileUploadRoot>
-            </Box>
+            <FileUploadRoot
+              accept={'image/*'}
+              ref={avatarRef}
+              onChange={updateImage}
+            >
+              <FileUploadTrigger asChild>
+                <Button id="AvatarFileUpload" variant="outline" size="sm">
+                  <LuUpload /> Upload image
+                </Button>
+              </FileUploadTrigger>
+            </FileUploadRoot>
           </Box>
         </Box>
       </Box>
@@ -260,21 +259,14 @@ export default function AccountForm({
       >
         <Box>
           <form action="/api/auth/signout" method="post">
-            <Button
-              _hover={{ color: 'teal' }}
-              background={'none'}
-              fontWeight={'light'}
-              textAlign={'left'}
-              padding={0}
-              type="submit"
-            >
+            <Button variant="ghost" colorPalette="gray" type="submit">
               <LuLogOut /> Sign out
             </Button>
           </form>
         </Box>
 
         <Box>
-          <Button type={'submit'} onClick={updateProfile} disabled={loading}>
+          <Button type="submit" onClick={updateProfile} disabled={loading}>
             {loading ? 'Loading ...' : 'Update'}
           </Button>
         </Box>

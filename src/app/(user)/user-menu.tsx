@@ -37,7 +37,7 @@ const UserMenu = ({ email, full_name, avatar_url }: UserMenuProps) => {
     <MenuRoot loopFocus>
       <MenuTrigger asChild>
         <IconButton aria-label="user menu" variant="ghost">
-          <Avatar size="sm" src={avatarUrl} name={full_name} />
+          <Avatar size="sm" src={avatarUrl || undefined} name={full_name} />
         </IconButton>
       </MenuTrigger>
       <MenuContent>
