@@ -1,4 +1,5 @@
 import { Heading, Stack, StackSeparator, Text } from '@chakra-ui/react';
+import { Metadata } from 'next';
 
 import { getSpecies as getGbifData } from '~/lib/utils/gbif';
 import { getNodeDetails as getOttData } from '~/lib/utils/ott';
@@ -8,19 +9,15 @@ import NodeDetails from './NodeDetails';
 import OttResultCard from './OttResultCard';
 import getCladeById from './getCladeById';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Node details',
 };
 
-const Page = async ({
-  searchParams,
-}: {
-  searchParams: Promise<{ id?: string; ott_id?: string }>;
-}) => {
+const Page = async ({ searchParams }: PageProps<'/node-details'>) => {
   const { id, ott_id } = await searchParams;
   // console.log(id, ott_id);
 
-  const openTreeResult = await getOttData(ott_id);
+  const openTreeResult = await getOttData(ott_id as string);
 
   // console.log(openTreeResult);
 
@@ -36,7 +33,7 @@ const Page = async ({
 
   // console.log(queryResults);
 
-  const result = id ? await getCladeById(id) : null;
+  const result = id ? await getCladeById(id as string) : null;
   // console.log(result);
 
   // const children = result?.id ? await getNodeChildren(result.id) : null;

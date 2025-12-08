@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { RiEdit2Fill } from 'react-icons/ri';
 import { TbBinaryTree } from 'react-icons/tb';
+import { Metadata } from 'next';
 import NextLink from 'next/link';
 
 import Markdown from '~/lib/components/Markdown';
@@ -25,15 +26,11 @@ import getCladeById from './getCladeById';
 import InfoBox from './infobox';
 import NavLink from './nav-link';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Clade info',
 };
 
-export default async function CladePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
   const { id } = await params;
 
   const data = await getCladeById(id);

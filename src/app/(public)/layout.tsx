@@ -3,11 +3,7 @@ import { Box } from '@chakra-ui/react';
 import Header from '~/lib/layouts/PublicLayout/Header';
 import Footer from '~/lib/layouts/PublicLayout/Footer';
 
-type PublicLayoutProps = {
-  children: React.ReactNode;
-};
-
-const PublicLayout = ({ children }: PublicLayoutProps) => {
+const PublicLayout = ({ children }: LayoutProps<'/'>) => {
   return (
     <Box
       bgGradient="to-b"

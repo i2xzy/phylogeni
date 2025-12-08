@@ -3,11 +3,7 @@ import { Grid } from '@chakra-ui/react';
 import { createClient } from '~/lib/utils/supabase/server';
 import Header from './header';
 
-type UserLayoutProps = {
-  children: React.ReactNode;
-};
-
-const UserLayout = async ({ children }: UserLayoutProps) => {
+const UserLayout = async ({ children }: LayoutProps<'/'>) => {
   const supabase = await createClient();
 
   const {

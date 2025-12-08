@@ -1,21 +1,20 @@
 import { Box, Flex } from '@chakra-ui/react';
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 
 import getTree from './getSubtree';
 import Sidebar from './sidebar';
 import SidebarSkeleton from './sidebar-skeleton';
 import Dendrogram from './dendrogram';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Tree view',
 };
 
-export default async function TreePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ node_id: string; selected_node_id: string }>;
-}) {
-  const { node_id, selected_node_id } = await searchParams;
+type SearchParams = { node_id: string; selected_node_id: string };
+
+export default async function TreePage({ searchParams }: PageProps<'/tree'>) {
+  const { node_id, selected_node_id } = (await searchParams) as SearchParams;
   const data = await getTree(node_id);
 
   if (!data) {
