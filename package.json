@@ -11,13 +11,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:turbo": "pnpm dlx turbo@latest run build",
     "postbuild": "next-sitemap --config next-sitemap.config.js",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "eslint src --fix && pnpm format",
     "type-check": "tsc --noEmit",
-    "check:turbo": "pnpm dlx turbo@latest lint type-check",
     "test:e2e": "playwright test",
     "format": "prettier --write src",
     "up-interactive": "pnpm up -i",
