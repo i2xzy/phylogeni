@@ -1,1 +1,1 @@
-pnpm check-types
+pnpm type-check
