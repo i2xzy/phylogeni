@@ -1,28 +1,24 @@
 import { Container, Heading, Stack } from '@chakra-ui/react';
+import { Metadata } from 'next';
 
 import { createClient } from '~/lib/utils/supabase/server';
 
 import CladeEditForm from './clade-edit-form';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Edit Clade info',
 };
 
 export default async function CladeEditPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+}: PageProps<'/clade/[id]/edit'>) {
   const { id } = await params;
-  console.log('id', id);
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('clades')
     .select('*')
     .eq('id', id);
-
-  console.log('data', data);
 
   if (error) {
     console.error('error', error);

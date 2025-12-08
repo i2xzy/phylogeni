@@ -3,11 +3,7 @@ import { Flex } from '@chakra-ui/react';
 import Header from '~/lib/layouts/PublicLayout/Header';
 import Footer from '~/lib/layouts/PublicLayout/Footer';
 
-type AuthLayoutProps = {
-  children: React.ReactNode;
-};
-
-const AuthLayout = ({ children }: AuthLayoutProps) => (
+const AuthLayout = ({ children }: LayoutProps<'/auth'>) => (
   <Flex
     direction="column"
     h="min(100dvh, 100vh)"

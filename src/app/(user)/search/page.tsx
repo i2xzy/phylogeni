@@ -1,4 +1,5 @@
 import { Card, Heading, Stack, StackSeparator, Text } from '@chakra-ui/react';
+import { Metadata } from 'next';
 import Link from 'next/link';
 
 import { matchName } from '~/lib/utils/ott';
@@ -6,19 +7,15 @@ import getCladesByName from '~/lib/utils/supabase/queries/getCladesByName';
 
 import Search from './search';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Advanced search',
 };
 
-const Page = async ({
-  searchParams,
-}: {
-  searchParams: Promise<{ q: string }>;
-}) => {
+const Page = async ({ searchParams }: PageProps<'/search'>) => {
   const { q } = await searchParams;
-  const results = await getCladesByName(q);
+  const results = await getCladesByName(q as string);
 
-  const openTreeResults = await matchName(q);
+  const openTreeResults = await matchName(q as string);
 
   return (
     <Stack p={8} gap={8}>

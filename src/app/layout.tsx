@@ -2,10 +2,6 @@ import type { Metadata, Viewport } from 'next';
 
 import { Provider as ChakraProvider } from '~/components/ui/provider';
 
-type RootLayoutProps = {
-  children: React.ReactNode;
-};
-
 const APP_NAME = 'Phylogeny Explorer';
 const APP_DESCRIPTION =
   'The Phylogeny Explorer is a web application for visualizing and exploring phylogenetic trees.';
@@ -32,7 +28,7 @@ export const viewport: Viewport = {
   themeColor: '#FFFFFF',
 };
 
-const RootLayout = ({ children }: RootLayoutProps) => {
+const RootLayout = ({ children }: LayoutProps<'/'>) => {
   return (
     <html suppressHydrationWarning lang="en">
       <body>

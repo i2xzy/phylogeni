@@ -1,10 +1,6 @@
 import { Flex, Heading } from '@chakra-ui/react';
 
-const AuthError = async ({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) => {
+const AuthError = async ({ searchParams }: PageProps<'/auth/error'>) => {
   const { error } = await searchParams;
 
   return (
