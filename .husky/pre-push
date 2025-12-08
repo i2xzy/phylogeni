@@ -1,1 +1,1 @@
-pnpm check:turbo
+pnpm check-types
