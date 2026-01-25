@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { RiEdit2Fill } from 'react-icons/ri';
 import { TbBinaryTree } from 'react-icons/tb';
+import { RiHistoryFill } from 'react-icons/ri';
 import NextLink from 'next/link';
 
 import Markdown from '~/lib/components/Markdown';
@@ -103,6 +104,9 @@ export default async function CladePage({
             </NavLink>
             <NavLink href={`/clade/${data.id}/edit`}>
               <RiEdit2Fill size="1.4em" /> Edit
+            </NavLink>
+            <NavLink href={`/clade/${data.id}/history`}>
+              <RiHistoryFill size="1.4em" /> History
             </NavLink>
           </Stack>
           <DataListRoot orientation="horizontal" gap="2">

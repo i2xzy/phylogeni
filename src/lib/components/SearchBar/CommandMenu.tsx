@@ -103,7 +103,7 @@ export const CommandMenu = (props: Props) => {
           collection={collection}
           onValueChange={(e) => {
             setOpen(false);
-            router.push(`tree?node_id=${e.value}`);
+            router.push(`/tree?node_id=${e.value}`);
             reset();
           }}
           onInputValueChange={({ inputValue }) => setInputValue(inputValue)}
