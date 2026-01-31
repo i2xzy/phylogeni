@@ -1,26 +1,51 @@
+'use client';
+
+import useSWR from 'swr';
 import { Box, Flex, Icon, Image, Stack, Text } from '@chakra-ui/react';
 import NextImage from 'next/image';
 import { RiAddLargeFill, RiEdit2Fill, RiProfileLine } from 'react-icons/ri';
 import { LuImage } from 'react-icons/lu';
 import { TbBinaryTree } from 'react-icons/tb';
 
+import { fetcher } from '~/lib/utils/swr/fetchers';
 import { EmptyState } from '~/components/ui/empty-state';
+import { CloseButton } from '~/components/ui/close-button';
 import Markdown from '~/lib/components/Markdown';
-import SidebarCloseButton from '~/lib/components/CladeSidebar/SidebarCloseButton';
 import SidebarButton from '~/lib/components/CladeSidebar/SidebarButton';
+import SidebarSkeleton from './sidebar-skeleton';
 
-import getClade from './getClade';
+import type { Database } from '~/types/supabase';
 
-export default async function Sidebar({ nodeId }: { nodeId?: string }) {
-  const data = nodeId ? await getClade(nodeId) : null;
+type Clade = Database['public']['Tables']['clades']['Row'];
+type CladeWithImage = Clade & { image?: string };
 
-  if (!data) {
+interface Props {
+  nodeId: string | null;
+  onClose: () => void;
+}
+
+export default function Sidebar({ nodeId, onClose }: Props) {
+  const { data, isLoading } = useSWR<CladeWithImage>(
+    nodeId ? `/api/clade/${nodeId}` : null,
+    fetcher
+  );
+
+  if (!nodeId) {
     return null;
+  }
+
+  if (isLoading || !data) {
+    return (
+      <>
+        <CloseButton pos="absolute" top="2" right="2" onClick={onClose} />
+        <SidebarSkeleton />
+      </>
+    );
   }
 
   return (
     <>
-      <SidebarCloseButton />
+      <CloseButton pos="absolute" top="2" right="2" onClick={onClose} />
       <Box w="100%" paddingInline="6" pt="6" pb="4">
         <Text as="h2" fontSize="lg" fontWeight="bold">
           {data?.name || 'Clade details'}

@@ -1,11 +1,13 @@
 'use client';
 
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
+import useSWR from 'swr';
 import { Combobox, createListCollection } from '@ark-ui/react';
 import { useRouter } from 'next/navigation';
 import { Center, DialogTrigger, Input, Text, chakra } from '@chakra-ui/react';
 
 import { Database } from '~/types/supabase';
+import { postFetcher } from '~/lib/utils/swr/fetchers';
 import { DialogContent, DialogRoot } from 'components/ui/dialog';
 import { ComboboxItem } from './ComboboxItem';
 
@@ -69,15 +71,26 @@ interface Props {
   disableHotkey?: boolean;
 }
 
+type Clade = Database['public']['Tables']['clades']['Row'];
+
 export const CommandMenu = (props: Props) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const { results, loading, reset } = useSearchItems(inputValue);
   const router = useRouter();
 
-  const collection = useMemo(() => {
-    return createListCollection({ items: results });
-  }, [results]);
+  const { data, isLoading, mutate } = useSWR<Clade[]>(
+    inputValue ? ['/api/search', { query: inputValue }] : null,
+    postFetcher
+  );
+
+  const results =
+    data?.map((item) => ({
+      value: item.id,
+      label: `${item.extant === false ? '†' : ''}${item.name}`,
+      category: item.other_names,
+    })) || [];
+
+  const collection = createListCollection({ items: results });
 
   useHotkey(setOpen, { disable: props.disableHotkey });
 
@@ -88,7 +101,7 @@ export const CommandMenu = (props: Props) => {
       open={open}
       onOpenChange={(event) => {
         setOpen(event.open);
-        if (!event.open) reset();
+        if (!event.open) mutate(undefined, false);
       }}
     >
       <DialogTrigger asChild>{props.trigger}</DialogTrigger>
@@ -104,7 +117,7 @@ export const CommandMenu = (props: Props) => {
           onValueChange={(e) => {
             setOpen(false);
             router.push(`tree?node_id=${e.value}`);
-            reset();
+            mutate(undefined, false);
           }}
           onInputValueChange={({ inputValue }) => setInputValue(inputValue)}
         >
@@ -122,14 +135,14 @@ export const CommandMenu = (props: Props) => {
             overscrollBehavior="contain"
           >
             <ComboboxList>
-              {loading && results.length === 0 && (
+              {isLoading && results.length === 0 && (
                 <Center p="3" h="100%">
                   <Text color="fg.muted" textStyle="sm">
                     Loading...
                   </Text>
                 </Center>
               )}
-              {!loading && inputValue && results.length === 0 && (
+              {!isLoading && inputValue && results.length === 0 && (
                 <Center p="3" h="100%">
                   <Text color="fg.muted" textStyle="sm">
                     No results found for <Text as="strong">{inputValue}</Text>
@@ -153,42 +166,6 @@ export const CommandMenu = (props: Props) => {
       </DialogContent>
     </DialogRoot>
   );
-};
-
-type Clade = Database['public']['Tables']['clades']['Row'];
-
-const useSearchItems = (inputValue: string) => {
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchItems = async (value: string) => {
-    setLoading(true);
-    const data: Clade[] = await fetch('/api/search', {
-      method: 'POST',
-      body: JSON.stringify({ query: value }),
-    }).then((res) => res.json());
-
-    // console.log('data', data);
-
-    setItems(
-      data.map((item) => ({
-        value: item.id,
-        label: `${item.extant === false ? '†' : ''}${item.name}`,
-        category: item.other_names,
-      })) || []
-    );
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (inputValue) {
-      fetchItems(inputValue);
-    } else {
-      setItems([]);
-    }
-  }, [inputValue]);
-
-  return { results: items, loading, reset: () => setItems([]) };
 };
 
 const useHotkey = (
