@@ -6,7 +6,7 @@ import { Button } from '~/components/ui/button';
 import { ColorModeButton } from '~/components/ui/color-mode';
 import Logo from '~/lib/components/Logo';
 
-const Header = () => {
+const Header = ({ isAuthPage }: { isAuthPage?: boolean }) => {
   return (
     <Grid
       as="header"
@@ -35,11 +35,13 @@ const Header = () => {
           <Logo full />
         </Link>
         <Grid marginLeft="auto" gap={4} autoFlow="column">
-          <Link href="/auth/sign-in">
-            <Button variant="outline">
-              <RiLoginBoxLine /> Sign In
-            </Button>
-          </Link>
+          {!isAuthPage && (
+            <Link href="/auth/sign-in">
+              <Button variant="outline">
+                <RiLoginBoxLine /> Sign In
+              </Button>
+            </Link>
+          )}
           <ColorModeButton />
         </Grid>
       </Grid>

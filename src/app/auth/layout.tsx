@@ -12,7 +12,7 @@ const AuthLayout = ({ children }: LayoutProps<'/auth'>) => (
       _dark: 'teal.950/50',
     }}
   >
-    <Header />
+    <Header isAuthPage />
     <Flex
       direction="column"
       alignItems="center"
