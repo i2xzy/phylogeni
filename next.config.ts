@@ -5,11 +5,17 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['@chakra-ui/react'],
   },
   reactStrictMode: true,
-  eslint: {
-    dirs: ['src'],
-  },
   images: {
-    domains: ['lh3.googleusercontent.com', 'upload.wikimedia.org'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org',
+      },
+    ],
   },
 };
 
