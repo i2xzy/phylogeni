@@ -31,7 +31,6 @@
     "@emotion/react": "^11.13.3",
     "@supabase/ssr": "^0.3.0",
     "@supabase/supabase-js": "^2.39.7",
-    "@terminusdb/terminusdb-client": "^10.0.33",
     "cookies-next": "^4.2.1",
     "formik": "^2.4.5",
     "motion": "^11.17.0",
