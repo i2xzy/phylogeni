@@ -63,11 +63,10 @@ const OttResultCard = ({ databaseResult, openTreeResult }: Props) => {
                   key:
                     !item.rank || item.rank === 'no rank' ? 'Clade' : item.rank,
                   value: (
-                    <Link
-                      as={NextLink}
-                      href={`/node-details?ott_id=${item.id}`}
-                    >
-                      {item.name}
+                    <Link asChild>
+                      <NextLink href={`/node-details?ott_id=${item.id}`}>
+                        {item.name}
+                      </NextLink>
                     </Link>
                   ),
                 }))}
@@ -82,11 +81,10 @@ const OttResultCard = ({ databaseResult, openTreeResult }: Props) => {
                 items={openTreeResult.children?.map((item, i) => ({
                   key: `${i + 1}`,
                   value: (
-                    <Link
-                      as={NextLink}
-                      href={`/node-details?ott_id=${item.id}`}
-                    >
-                      {item.name}
+                    <Link asChild>
+                      <NextLink href={`/node-details?ott_id=${item.id}`}>
+                        {item.name}
+                      </NextLink>
                     </Link>
                   ),
                 }))}

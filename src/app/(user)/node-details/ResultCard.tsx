@@ -58,11 +58,12 @@ const ResultCard = ({
               {
                 key: 'Parent',
                 value: (
-                  <Link
-                    as={NextLink}
-                    href={`/node-details?id=${databaseResult.parent}`}
-                  >
-                    {lineage?.[0]?.name}
+                  <Link asChild>
+                    <NextLink
+                      href={`/node-details?id=${databaseResult.parent}`}
+                    >
+                      {lineage?.[0]?.name}
+                    </NextLink>
                   </Link>
                 ),
               },
@@ -84,8 +85,10 @@ const ResultCard = ({
                   .map((item) => ({
                     key: 'Clade',
                     value: (
-                      <Link as={NextLink} href={`/node-details?id=${item.id}`}>
-                        {item.name}
+                      <Link asChild>
+                        <NextLink href={`/node-details?id=${item.id}`}>
+                          {item.name}
+                        </NextLink>
                       </Link>
                     ),
                   }))}
@@ -100,8 +103,10 @@ const ResultCard = ({
                 items={directChildren?.map((item, i) => ({
                   key: `${i + 1}`,
                   value: (
-                    <Link as={NextLink} href={`/node-details?id=${item.id}`}>
-                      {item.name}
+                    <Link asChild>
+                      <NextLink href={`/node-details?id=${item.id}`}>
+                        {item.name}
+                      </NextLink>
                     </Link>
                   ),
                 }))}

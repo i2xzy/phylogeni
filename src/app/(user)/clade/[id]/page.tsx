@@ -111,8 +111,10 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
             <DataListItem
               label="Parent"
               value={
-                <Link as={NextLink} href={`/node-details?id=${data.parent}`}>
-                  {data.lineage?.[0]?.name}
+                <Link asChild>
+                  <NextLink href={`/node-details?id=${data.parent}`}>
+                    {data.lineage?.[0]?.name}
+                  </NextLink>
                 </Link>
               }
             />
@@ -124,8 +126,8 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
               <List.Root>
                 {data.children.map((child) => (
                   <List.Item key={child.id}>
-                    <Link as={NextLink} href={child.id}>
-                      {child.name}
+                    <Link asChild>
+                      <NextLink href={child.id}>{child.name}</NextLink>
                     </Link>
                   </List.Item>
                 ))}
