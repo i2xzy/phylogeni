@@ -19,7 +19,7 @@ import {
   PaginationRoot,
 } from 'components/ui/pagination';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { RiSearchLine } from 'react-icons/ri';
 import { Checkbox } from '~/components/ui/checkbox';
 import { InputGroup } from '~/components/ui/input-group';
@@ -40,7 +40,6 @@ export const CladeHistoryTable = ({
 }) => {
   const [page, setPage] = useState(1);
   const [filteredRows, setFilteredRows] = useState(rows);
-  const [currentRows, setCurrentRows] = useState<TransactionWithUser[]>([]);
   const [checked, setChecked] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [changeTypeFilter, setChangeTypeFilter] = useState('All');
@@ -50,14 +49,14 @@ export const CladeHistoryTable = ({
   const router = useRouter();
   const rowsPerPage = 18;
 
-  useEffect(() => {
-    setCurrentRows(
+  const currentRows = useMemo(
+    () =>
       filteredRows.slice(
         (page - 1) * rowsPerPage,
         (page - 1) * rowsPerPage + rowsPerPage
-      )
-    );
-  }, [rows, filteredRows, page]);
+      ),
+    [filteredRows, page]
+  );
 
   const handleSearch = (value: string) => {
     const filterRows = (tx: TransactionWithUser) =>
@@ -152,7 +151,7 @@ export const CladeHistoryTable = ({
               defaultValue="All"
               items={['All', 'CREATE', 'UPDATE', 'DESTROY']}
               value={changeTypeFilter}
-              onValueChange={(e) => handleModeFilter(e.value)}
+              onValueChange={(e) => handleModeFilter(e.value ?? 'All')}
             />
 
             <Checkbox
