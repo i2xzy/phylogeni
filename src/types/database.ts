@@ -1,32 +1,30 @@
 import { Database } from './supabase';
 
-export type Status = Database['public']['Enums']['transaction_status'];
+export type RevisionMode = Database['public']['Enums']['revision_mode'];
 
-export type Mode = Database['public']['Enums']['transaction_mode'];
-
-//export type Clade = Database['public']['Tables']['clades']['Row'];
-
-export type Clade = {
-  created: string;
-  description: string | null;
-  extant: boolean | null;
-  id: string;
-  modified: string | null;
+export type CladeSnapshot = {
+  id: number;
   name: string;
-  otherNames: string | null;
-  parent: string | null;
+  parent_id: number | null;
+  rank: string | null;
+  extant: boolean | null;
+  common_names: string[] | null;
+  description?: string | null;
 };
 
-export type User = Database['public']['Tables']['users_old']['Row'];
+export type ProfileRef = Pick<
+  Database['public']['Tables']['profiles']['Row'],
+  'id' | 'username' | 'full_name' | 'avatar_url'
+>;
 
-export type Transaction =
-  Database['public']['Tables']['transactions_old']['Row'] & {
-    before: Partial<Clade> | null;
-    after: Partial<Clade> | null;
-    mode: Mode;
-    status: Status;
-  };
+export type Revision = Omit<
+  Database['public']['Tables']['clade_revisions']['Row'],
+  'before' | 'after'
+> & {
+  before: CladeSnapshot | null;
+  after: CladeSnapshot | null;
+};
 
-export interface TransactionWithUser extends Omit<Transaction, 'user'> {
-  user: Pick<User, 'id' | 'username'> | null;
+export interface RevisionWithUser extends Omit<Revision, 'user_id'> {
+  user: ProfileRef | null;
 }

@@ -1,7 +1,6 @@
 'use client';
 
-import { Box, Badge, Text, Stack } from '@chakra-ui/react';
-import React from 'react';
+import { Badge, Box, Stack, Text } from '@chakra-ui/react';
 import { FaCaretRight } from 'react-icons/fa';
 import { Button } from '~/components/ui/button';
 import {
@@ -14,45 +13,40 @@ import {
   DialogTrigger,
 } from '~/components/ui/dialog';
 import CladeChangeBox from './CladeChangeBox';
-import { TransactionWithUser, Mode } from '~/types/database';
+import { RevisionMode, RevisionWithUser } from '~/types/database';
 
-const ChangesDialog = ({
-  item,
-  text,
-}: {
-  item: TransactionWithUser;
-  text: string;
-}) => {
-  const colorsMode: Record<Mode, string> = {
-    CREATE: 'green',
-    DESTROY: 'red',
-    UPDATE: 'blue',
-  };
+const MODE_COLORS: Record<RevisionMode, string> = {
+  CREATE: 'green',
+  UPDATE: 'blue',
+  DELETE: 'red',
+  MOVE: 'purple',
+  MERGE: 'orange',
+};
+
+const ChangesDialog = ({ revision }: { revision: RevisionWithUser }) => {
+  const cladeName =
+    revision.before?.name ??
+    revision.after?.name ??
+    `clade ${revision.clade_id}`;
+  const userLabel =
+    revision.user?.username ?? revision.user?.full_name ?? 'unknown user';
 
   return (
     <DialogRoot
-      key={item.id}
+      key={revision.id}
       placement="center"
       motionPreset="slide-in-bottom"
       size="xl"
     >
       <DialogTrigger asChild>
-        <Button unstyled _hover={{ color: 'teal' }}>
-          {text}
+        <Button unstyled _hover={{ color: 'teal' }} fontSize="xs">
+          view
         </Button>
       </DialogTrigger>
-      <DialogContent width="">
+      <DialogContent>
         <DialogHeader>
           <Stack paddingX=".6rem">
-            <Box
-              display="flex"
-              gap=".8rem"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <DialogTitle>{`Changes by ${item.user?.username}`}</DialogTitle>
-            </Box>
-
+            <DialogTitle>{`Changes by ${userLabel}`}</DialogTitle>
             <Box
               display="flex"
               alignItems="center"
@@ -61,57 +55,42 @@ const ChangesDialog = ({
               <Box display="flex" alignItems="center" gap=".5rem">
                 <Badge
                   size="lg"
-                  colorPalette={colorsMode[item.mode]}
+                  colorPalette={MODE_COLORS[revision.mode]}
                   variant="subtle"
                   marginRight=".5rem"
                 >
-                  {item.mode}
+                  {revision.mode}
                 </Badge>
-
                 <Text fontSize="md" fontWeight="light" color="gray.400">
-                  {item.before?.name} ({item.identifier})
+                  {cladeName}
                 </Text>
               </Box>
-
-              <Box>
-                <Text color="gray.400">
-                  {item.created && new Date(item.created).toDateString()}
-                </Text>
-              </Box>
+              <Text color="gray.400">
+                {new Date(revision.created_at).toLocaleString()}
+              </Text>
             </Box>
           </Stack>
         </DialogHeader>
-        <DialogBody display="flex" justifyContent="center">
-          {JSON.stringify(item.before) !== '{}' && (
-            <CladeChangeBox clade={item.before} />
+        <DialogBody display="flex" justifyContent="center" gap="3">
+          {revision.before && <CladeChangeBox snapshot={revision.before} />}
+          {revision.before && revision.after && (
+            <Box
+              paddingY={4}
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <FaCaretRight size={30} />
+            </Box>
           )}
-
-          {JSON.stringify(item.before) !== '{}' &&
-            JSON.stringify(item.after) !== '{}' && (
-              <Box
-                paddingY={4}
-                display="flex"
-                justifyContent="center"
-                alignContent="center"
-                alignItems="center"
-              >
-                <FaCaretRight size={30} />
-              </Box>
-            )}
-
-          {JSON.stringify(item.after) !== '{}' && (
+          {revision.after && (
             <CladeChangeBox
-              clade={Object(item.after)}
-              other={Object(item.before)}
+              snapshot={revision.after}
+              other={revision.before}
+              changedFields={revision.changed_fields}
             />
           )}
         </DialogBody>
-        {/* <DialogFooter>
-                    <DialogActionTrigger asChild>
-                        <Button variant="outline">Cancel</Button>
-                    </DialogActionTrigger>
-                    <Button>Save</Button>
-                </DialogFooter> */}
         <DialogCloseTrigger />
       </DialogContent>
     </DialogRoot>
