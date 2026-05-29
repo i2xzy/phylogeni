@@ -71,7 +71,14 @@ const RevisionSentence = ({ revision }: { revision: RevisionWithUser }) => {
       return (
         <Text>
           <CladeRef id={revision.clade_id} fallbackName={cladeName} /> was
-          created by <UserRef user={revision.user} />.
+          created
+          {revision.target_clade_id != null && (
+            <>
+              {' '}
+              under <CladeRef id={revision.target_clade_id} />
+            </>
+          )}{' '}
+          by <UserRef user={revision.user} />.
         </Text>
       );
     case 'UPDATE':
