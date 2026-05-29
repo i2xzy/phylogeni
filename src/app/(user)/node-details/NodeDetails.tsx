@@ -21,11 +21,7 @@ import {
   SelectValueText,
 } from '~/components/ui/select';
 import type { OttNodeDetails } from '~/types/ott';
-import type {
-  ChildNode,
-  LineageNode,
-  CladeDetails,
-} from '~/lib/utils/supabase/queries/getCladeDetails';
+import type { ChildNode, LineageNode, CladeDetails } from '~/types/database';
 
 import ResultCard from './ResultCard';
 

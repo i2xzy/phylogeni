@@ -15,7 +15,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { LuPlus } from 'react-icons/lu';
 
-import { Database } from '~/types/supabase';
+import { Clade } from '~/types/database';
 import { Field } from '~/components/ui/field';
 import { Radio, RadioGroup } from '~/components/ui/radio';
 import {
@@ -25,8 +25,6 @@ import {
   SelectTrigger,
   SelectValueText,
 } from '~/components/ui/select';
-
-type Clade = Database['public']['Tables']['taxa']['Row'];
 
 const ranks = createListCollection({
   items: [

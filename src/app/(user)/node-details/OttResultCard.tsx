@@ -5,7 +5,7 @@ import NextLink from 'next/link';
 
 import DescriptionList from '~/lib/components/DescriptionList';
 import type { OttNodeDetails } from '~/types/ott';
-import type { CladeDetails } from '~/lib/utils/supabase/queries/getCladeDetails';
+import type { CladeDetails } from '~/types/database';
 
 import MatchText from './MatchText';
 

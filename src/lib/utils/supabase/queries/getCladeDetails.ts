@@ -1,23 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '~/types/supabase';
+import { CladeDetails, LineageNode } from '~/types/database';
 import resolveCladeId from './resolveCladeId';
-
-type CladeRow = Database['public']['Tables']['taxa']['Row'];
-
-export type LineageNode = Pick<CladeRow, 'name' | 'rank' | 'parent_id'> & {
-  id: string;
-};
-
-export type ChildNode = Pick<CladeRow, 'name' | 'rank' | 'extant'> & {
-  id: string;
-};
-
-export type CladeDetails = CladeRow & {
-  description: string | null;
-  parent: string | null;
-  lineage: LineageNode[];
-  children: ChildNode[];
-};
 
 const MAX_LINEAGE_DEPTH = 64;
 

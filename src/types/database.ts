@@ -1,5 +1,26 @@
 import { Database } from './supabase';
 
+/** A canonical clade row (currently backed by the `taxa` table). */
+export type Clade = Database['public']['Tables']['taxa']['Row'];
+
+/** A clade as it appears in a lineage/breadcrumb trail. */
+export type LineageNode = Pick<Clade, 'name' | 'rank' | 'parent_id'> & {
+  id: string;
+};
+
+/** A direct child of a clade. */
+export type ChildNode = Pick<Clade, 'name' | 'rank' | 'extant'> & {
+  id: string;
+};
+
+/** A clade plus its resolved lineage and direct children, for detail views. */
+export type CladeDetails = Clade & {
+  description: string | null;
+  parent: string | null;
+  lineage: LineageNode[];
+  children: ChildNode[];
+};
+
 export type RevisionMode = Database['public']['Enums']['revision_mode'];
 
 export type CladeSnapshot = {

@@ -13,9 +13,8 @@ import { CloseButton } from '~/components/ui/close-button';
 import SidebarButton from '~/lib/components/CladeSidebar/SidebarButton';
 import SidebarSkeleton from './sidebar-skeleton';
 
-import type { Database } from '~/types/supabase';
+import type { Clade } from '~/types/database';
 
-type Clade = Database['public']['Tables']['taxa']['Row'];
 type CladeWithImage = Clade & {
   image?: string;
   last_edited?: string | null;

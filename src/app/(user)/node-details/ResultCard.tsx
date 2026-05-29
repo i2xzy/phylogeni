@@ -3,11 +3,7 @@ import NextLink from 'next/link';
 
 import DescriptionList from '~/lib/components/DescriptionList';
 import type { OttNodeDetails } from '~/types/ott';
-import type {
-  ChildNode,
-  LineageNode,
-  CladeDetails,
-} from '~/lib/utils/supabase/queries/getCladeDetails';
+import type { ChildNode, LineageNode, CladeDetails } from '~/types/database';
 
 import MatchText from './MatchText';
 
