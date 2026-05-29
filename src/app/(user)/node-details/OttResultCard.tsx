@@ -5,13 +5,13 @@ import NextLink from 'next/link';
 
 import DescriptionList from '~/lib/components/DescriptionList';
 import type { OttNodeDetails } from '~/types/ott';
-import type { TaxaDetails } from '~/lib/utils/supabase/queries/getTaxaDetails';
+import type { CladeDetails } from '~/lib/utils/supabase/queries/getCladeDetails';
 
 import MatchText from './MatchText';
 
 type Props = {
   openTreeResult: OttNodeDetails;
-  databaseResult?: TaxaDetails | null;
+  databaseResult?: CladeDetails | null;
 };
 
 const OttResultCard = ({ databaseResult, openTreeResult }: Props) => {

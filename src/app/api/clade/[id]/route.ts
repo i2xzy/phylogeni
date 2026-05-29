@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createClient } from '~/lib/utils/supabase/server';
-import resolveTaxaId from '~/lib/utils/supabase/queries/resolveTaxaId';
+import resolveCladeId from '~/lib/utils/supabase/queries/resolveCladeId';
 import findImagesByName from '~/lib/utils/wiki/findImagesByName';
 
 export async function GET(
@@ -15,16 +15,16 @@ export async function GET(
   }
 
   const supabase = await createClient();
-  const taxaId = await resolveTaxaId(supabase, id);
+  const cladeId = await resolveCladeId(supabase, id);
 
-  if (taxaId == null) {
+  if (cladeId == null) {
     return NextResponse.json({ error: 'Clade not found' }, { status: 404 });
   }
 
   const { data, error } = await supabase
     .from('taxa')
     .select('*')
-    .eq('id', taxaId)
+    .eq('id', cladeId)
     .maybeSingle();
 
   if (error) {
@@ -41,7 +41,7 @@ export async function GET(
     supabase
       .from('clade_revisions')
       .select('created_at')
-      .eq('clade_id', taxaId)
+      .eq('clade_id', cladeId)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),

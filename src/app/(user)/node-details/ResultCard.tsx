@@ -6,14 +6,14 @@ import type { OttNodeDetails } from '~/types/ott';
 import type {
   ChildNode,
   LineageNode,
-  TaxaDetails,
-} from '~/lib/utils/supabase/queries/getTaxaDetails';
+  CladeDetails,
+} from '~/lib/utils/supabase/queries/getCladeDetails';
 
 import MatchText from './MatchText';
 
 type Props = {
   openTreeResult?: OttNodeDetails | null;
-  databaseResult: TaxaDetails;
+  databaseResult: CladeDetails;
   lineage?: LineageNode[] | null;
   directChildren?: ChildNode[] | null;
 };

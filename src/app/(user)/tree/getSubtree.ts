@@ -1,14 +1,14 @@
 import { createClient } from '~/lib/utils/supabase/server';
-import resolveTaxaId from '~/lib/utils/supabase/queries/resolveTaxaId';
+import resolveCladeId from '~/lib/utils/supabase/queries/resolveCladeId';
 import type { Node } from '~/types/tree';
 
-type TaxaTreeNode = {
+type CladeTreeNode = {
   id: number;
   name: string;
   parent_id: number | null;
   extant: boolean | null;
   hasChildren: boolean;
-  children: TaxaTreeNode[];
+  children: CladeTreeNode[];
 };
 
 // id of the `Life` root in the canonical `taxa` table. Hardcoded to avoid an
@@ -23,7 +23,7 @@ const getSubtree = async (idParam?: string): Promise<Node | null> => {
   let nodeId: number | null = LIFE_ROOT_ID;
 
   if (idParam) {
-    nodeId = await resolveTaxaId(supabase, idParam);
+    nodeId = await resolveCladeId(supabase, idParam);
   }
 
   if (nodeId == null) return null;
@@ -39,9 +39,9 @@ const getSubtree = async (idParam?: string): Promise<Node | null> => {
   }
 
   const rootParentId = rootMeta?.parent_id ?? null;
-  const item = data as TaxaTreeNode | null;
+  const item = data as CladeTreeNode | null;
 
-  const resolveNode = (node: TaxaTreeNode, isRoot = false): Node => {
+  const resolveNode = (node: CladeTreeNode, isRoot = false): Node => {
     const parentId = isRoot ? rootParentId : node.parent_id;
     return {
       ...node,

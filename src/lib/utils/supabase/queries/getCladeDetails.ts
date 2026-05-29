@@ -1,18 +1,18 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '~/types/supabase';
-import resolveTaxaId from './resolveTaxaId';
+import resolveCladeId from './resolveCladeId';
 
-type TaxaRow = Database['public']['Tables']['taxa']['Row'];
+type CladeRow = Database['public']['Tables']['taxa']['Row'];
 
-export type LineageNode = Pick<TaxaRow, 'name' | 'rank' | 'parent_id'> & {
+export type LineageNode = Pick<CladeRow, 'name' | 'rank' | 'parent_id'> & {
   id: string;
 };
 
-export type ChildNode = Pick<TaxaRow, 'name' | 'rank' | 'extant'> & {
+export type ChildNode = Pick<CladeRow, 'name' | 'rank' | 'extant'> & {
   id: string;
 };
 
-export type TaxaDetails = TaxaRow & {
+export type CladeDetails = CladeRow & {
   description: string | null;
   parent: string | null;
   lineage: LineageNode[];
@@ -49,21 +49,21 @@ const fetchLineage = async (
   return lineage;
 };
 
-const getTaxaDetails = async (
+const getCladeDetails = async (
   supabase: SupabaseClient<Database>,
   idParam: string
-): Promise<TaxaDetails | null> => {
-  const taxaId = await resolveTaxaId(supabase, idParam);
-  if (taxaId == null) return null;
+): Promise<CladeDetails | null> => {
+  const cladeId = await resolveCladeId(supabase, idParam);
+  if (cladeId == null) return null;
 
-  const { data: taxon, error } = await supabase
+  const { data: clade, error } = await supabase
     .from('taxa')
     .select('*')
-    .eq('id', taxaId)
+    .eq('id', cladeId)
     .maybeSingle();
 
-  if (error || !taxon) {
-    if (error) console.error('getTaxaDetails', error);
+  if (error || !clade) {
+    if (error) console.error('getCladeDetails', error);
     return null;
   }
 
@@ -71,15 +71,15 @@ const getTaxaDetails = async (
     supabase
       .from('taxa')
       .select('id, name, rank, extant')
-      .eq('parent_id', taxaId)
+      .eq('parent_id', cladeId)
       .order('name'),
-    fetchLineage(supabase, taxon.parent_id),
+    fetchLineage(supabase, clade.parent_id),
   ]);
 
   return {
-    ...taxon,
+    ...clade,
     description: null,
-    parent: taxon.parent_id != null ? String(taxon.parent_id) : null,
+    parent: clade.parent_id != null ? String(clade.parent_id) : null,
     lineage,
     children: (children ?? []).map((c) => ({
       id: String(c.id),
@@ -90,4 +90,4 @@ const getTaxaDetails = async (
   };
 };
 
-export default getTaxaDetails;
+export default getCladeDetails;

@@ -24,8 +24,8 @@ import type { OttNodeDetails } from '~/types/ott';
 import type {
   ChildNode,
   LineageNode,
-  TaxaDetails,
-} from '~/lib/utils/supabase/queries/getTaxaDetails';
+  CladeDetails,
+} from '~/lib/utils/supabase/queries/getCladeDetails';
 
 import ResultCard from './ResultCard';
 
@@ -50,7 +50,7 @@ const sources = createListCollection({
 
 type Props = {
   openTreeResult?: OttNodeDetails | null;
-  databaseResult?: TaxaDetails | null;
+  databaseResult?: CladeDetails | null;
   lineage?: LineageNode[] | null;
   directChildren?: ChildNode[] | null;
 };

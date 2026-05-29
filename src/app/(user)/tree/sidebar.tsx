@@ -15,8 +15,8 @@ import SidebarSkeleton from './sidebar-skeleton';
 
 import type { Database } from '~/types/supabase';
 
-type Taxon = Database['public']['Tables']['taxa']['Row'];
-type TaxonWithImage = Taxon & {
+type Clade = Database['public']['Tables']['taxa']['Row'];
+type CladeWithImage = Clade & {
   image?: string;
   last_edited?: string | null;
 };
@@ -27,7 +27,7 @@ interface Props {
 }
 
 export default function Sidebar({ nodeId, onClose }: Props) {
-  const { data, isLoading } = useSWR<TaxonWithImage>(
+  const { data, isLoading } = useSWR<CladeWithImage>(
     nodeId ? `/api/clade/${nodeId}` : null,
     fetcher
   );

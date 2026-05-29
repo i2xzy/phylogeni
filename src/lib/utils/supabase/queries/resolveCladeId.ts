@@ -4,16 +4,16 @@ import { Database } from '~/types/supabase';
 const MONGO_OBJECT_ID = /^[0-9a-f]{24}$/i;
 
 /**
- * Resolve a URL id parameter to the numeric `taxa.id`.
+ * Resolve a URL id parameter to the numeric clade id.
  *
  * - Numeric input (e.g. "123") is parsed and returned directly.
  * - 24-char hex input (legacy Mongo ObjectId from the original PE app) is
- *   looked up via `taxa.legacy_mongo_id` so old bookmarks / external links
- *   keep working.
+ *   looked up via `legacy_mongo_id` so old bookmarks / external links keep
+ *   working.
  *
- * Returns `null` if the id doesn't match either format or no taxa row exists.
+ * Returns `null` if the id doesn't match either format or no row exists.
  */
-const resolveTaxaId = async (
+const resolveCladeId = async (
   supabase: SupabaseClient<Database>,
   idParam: string
 ): Promise<number | null> => {
@@ -35,4 +35,4 @@ const resolveTaxaId = async (
   return null;
 };
 
-export default resolveTaxaId;
+export default resolveCladeId;
