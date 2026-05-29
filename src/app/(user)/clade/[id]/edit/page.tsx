@@ -2,6 +2,7 @@ import { Container, Heading, Stack } from '@chakra-ui/react';
 import { Metadata } from 'next';
 
 import { createClient } from '~/lib/utils/supabase/server';
+import resolveTaxaId from '~/lib/utils/supabase/queries/resolveTaxaId';
 
 import CladeEditForm from './clade-edit-form';
 
@@ -15,17 +16,22 @@ export default async function CladeEditPage({
   const { id } = await params;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('clades')
+  const taxaId = await resolveTaxaId(supabase, id);
+
+  if (taxaId == null) {
+    return null;
+  }
+
+  const { data: clade, error } = await supabase
+    .from('taxa')
     .select('*')
-    .eq('id', id);
+    .eq('id', taxaId)
+    .maybeSingle();
 
   if (error) {
     console.error('error', error);
     return null;
   }
-
-  const clade = data?.[0];
 
   if (!clade) {
     return null;

@@ -123,7 +123,7 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
             />
           </DataListRoot>
 
-          {data.children?.length && (
+          {data.children && data.children.length > 0 && (
             <Stack gap="3">
               <Text fontWeight="medium">Children</Text>
               <List.Root>

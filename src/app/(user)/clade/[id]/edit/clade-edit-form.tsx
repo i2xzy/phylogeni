@@ -26,7 +26,7 @@ import {
   SelectValueText,
 } from '~/components/ui/select';
 
-type Clade = Database['public']['Tables']['clades']['Row'];
+type Clade = Database['public']['Tables']['taxa']['Row'];
 
 const ranks = createListCollection({
   items: [
@@ -68,7 +68,7 @@ export default function CladeEditForm({ clade }: { clade: Clade }) {
               <Field label="Common name">
                 <Input
                   placeholder="Common name"
-                  defaultValue={clade?.other_names || ''}
+                  defaultValue={(clade?.common_names ?? []).join(', ')}
                 />
               </Field>
 

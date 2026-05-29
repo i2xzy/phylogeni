@@ -20,8 +20,12 @@ import {
   SelectTrigger,
   SelectValueText,
 } from '~/components/ui/select';
-import { Database } from '~/types/supabase';
 import type { OttNodeDetails } from '~/types/ott';
+import type {
+  ChildNode,
+  LineageNode,
+  TaxaDetails,
+} from '~/lib/utils/supabase/queries/getTaxaDetails';
 
 import ResultCard from './ResultCard';
 
@@ -44,13 +48,11 @@ const sources = createListCollection({
   ],
 });
 
-type Clade = Database['public']['Tables']['clades']['Row'];
-
 type Props = {
   openTreeResult?: OttNodeDetails | null;
-  databaseResult?: Clade | null;
-  lineage?: Clade[] | null;
-  directChildren?: Clade[] | null;
+  databaseResult?: TaxaDetails | null;
+  lineage?: LineageNode[] | null;
+  directChildren?: ChildNode[] | null;
 };
 
 const NodeDetails = ({
@@ -79,7 +81,9 @@ const NodeDetails = ({
                 <Field label="Common name">
                   <Input
                     placeholder="Common name"
-                    defaultValue={databaseResult?.other_names || ''}
+                    defaultValue={(databaseResult?.common_names ?? []).join(
+                      ', '
+                    )}
                   />
                 </Field>
 

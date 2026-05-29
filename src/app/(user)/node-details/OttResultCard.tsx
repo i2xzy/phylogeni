@@ -4,16 +4,14 @@ import { Card, Heading, Stack, Link, StackSeparator } from '@chakra-ui/react';
 import NextLink from 'next/link';
 
 import DescriptionList from '~/lib/components/DescriptionList';
-import { Database } from '~/types/supabase';
 import type { OttNodeDetails } from '~/types/ott';
+import type { TaxaDetails } from '~/lib/utils/supabase/queries/getTaxaDetails';
 
 import MatchText from './MatchText';
 
-type Clade = Database['public']['Tables']['clades']['Row'];
-
 type Props = {
   openTreeResult: OttNodeDetails;
-  databaseResult?: Clade | null;
+  databaseResult?: TaxaDetails | null;
 };
 
 const OttResultCard = ({ databaseResult, openTreeResult }: Props) => {
@@ -55,7 +53,7 @@ const OttResultCard = ({ databaseResult, openTreeResult }: Props) => {
             ]}
           />
 
-          {openTreeResult.lineage?.length && (
+          {openTreeResult.lineage && openTreeResult.lineage.length > 0 && (
             <div>
               <Heading size="sm">Lineage</Heading>
               <DescriptionList

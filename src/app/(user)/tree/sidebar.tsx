@@ -10,14 +10,16 @@ import { TbBinaryTree } from 'react-icons/tb';
 import { fetcher } from '~/lib/utils/swr/fetchers';
 import { EmptyState } from '~/components/ui/empty-state';
 import { CloseButton } from '~/components/ui/close-button';
-import Markdown from '~/lib/components/Markdown';
 import SidebarButton from '~/lib/components/CladeSidebar/SidebarButton';
 import SidebarSkeleton from './sidebar-skeleton';
 
 import type { Database } from '~/types/supabase';
 
-type Clade = Database['public']['Tables']['clades']['Row'];
-type CladeWithImage = Clade & { image?: string };
+type Taxon = Database['public']['Tables']['taxa']['Row'];
+type TaxonWithImage = Taxon & {
+  image?: string;
+  last_edited?: string | null;
+};
 
 interface Props {
   nodeId: string | null;
@@ -25,7 +27,7 @@ interface Props {
 }
 
 export default function Sidebar({ nodeId, onClose }: Props) {
-  const { data, isLoading } = useSWR<CladeWithImage>(
+  const { data, isLoading } = useSWR<TaxonWithImage>(
     nodeId ? `/api/clade/${nodeId}` : null,
     fetcher
   );
@@ -92,29 +94,32 @@ export default function Sidebar({ nodeId, onClose }: Props) {
             </SidebarButton>
           </Flex>
 
-          {data.other_names && (
+          {data.common_names && data.common_names.length > 0 && (
             <>
               <Text as="h3" fontSize="sm" fontWeight="bold">
-                Other names
+                Common names
               </Text>
-              <Text>{data.other_names}</Text>
+              <Text>{data.common_names.join(', ')}</Text>
             </>
           )}
 
-          <Text as="h3" fontSize="md" fontWeight="bold">
-            Description
-          </Text>
-          <Stack gap={1}>
-            <Markdown>{data.description}</Markdown>
-          </Stack>
+          {data.rank && (
+            <>
+              <Text as="h3" fontSize="sm" fontWeight="bold">
+                Rank
+              </Text>
+              <Text>{data.rank}</Text>
+            </>
+          )}
         </Stack>
       </Box>
-      <Flex paddingInline="6" pt="4" pb="6" justify="end">
-        <Text fontSize="sm" color="subtle">
-          Last edited{' '}
-          {new Date(data.modified || data.created_at).toLocaleDateString()}
-        </Text>
-      </Flex>
+      {data.last_edited && (
+        <Flex paddingInline="6" pt="4" pb="6" justify="end">
+          <Text fontSize="sm" color="subtle">
+            Last edited {new Date(data.last_edited).toLocaleDateString()}
+          </Text>
+        </Flex>
+      )}
     </>
   );
 }
