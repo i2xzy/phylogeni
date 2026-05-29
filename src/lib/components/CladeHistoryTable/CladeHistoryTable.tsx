@@ -8,7 +8,6 @@ import {
   Input,
   Stack,
   Text,
-  CheckboxCheckedChangeDetails,
 } from '@chakra-ui/react';
 import {
   PaginationItems,
@@ -19,12 +18,14 @@ import {
 } from 'components/ui/pagination';
 import { useMemo, useState } from 'react';
 import { RiSearchLine } from 'react-icons/ri';
-import { Checkbox } from '~/components/ui/checkbox';
 import { InputGroup } from '~/components/ui/input-group';
 import { SegmentedControl } from '~/components/ui/segmented-control';
-import { useSearchParams, useRouter } from 'next/navigation';
 import { RevisionMode, RevisionWithUser } from '~/types/database';
 import RevisionFeedItem from './RevisionFeedItem';
+// TODO: restore with the "show child nodes" history filter
+// import { CheckboxCheckedChangeDetails } from '@chakra-ui/react';
+// import { useRouter, useSearchParams } from 'next/navigation';
+// import { Checkbox } from '~/components/ui/checkbox';
 
 const MODE_FILTERS: Array<'All' | RevisionMode> = [
   'All',
@@ -37,20 +38,29 @@ const MODE_FILTERS: Array<'All' | RevisionMode> = [
 
 export const CladeHistoryTable = ({
   rows,
-  cladeId,
   cladeName,
 }: {
   rows: RevisionWithUser[];
-  cladeId: string;
   cladeName: string | undefined;
 }) => {
   const [page, setPage] = useState(1);
   const [searchText, setSearchText] = useState('');
   const [modeFilter, setModeFilter] = useState<'All' | RevisionMode>('All');
-  const [checked, setChecked] = useState(false);
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const rowsPerPage = 18;
+
+  // TODO: re-enable with the "show child nodes" history filter (needs a
+  // `cladeId` prop to build the navigation URL).
+  // const [checked, setChecked] = useState(false);
+  // const searchParams = useSearchParams();
+  // const router = useRouter();
+  //
+  // const handleChecked = (e: CheckboxCheckedChangeDetails) => {
+  //   const value = !!e.checked;
+  //   setChecked(value);
+  //   const newSearchParams = new URLSearchParams(searchParams);
+  //   newSearchParams.set('include_children', value ? 'true' : 'false');
+  //   router.push(`/clade/${cladeId}/revisions?${newSearchParams.toString()}`);
+  // };
 
   const filteredRows = useMemo(() => {
     const q = searchText.trim().toLowerCase();
@@ -81,14 +91,6 @@ export const CladeHistoryTable = ({
     [filteredRows, page]
   );
 
-  const handleChecked = (e: CheckboxCheckedChangeDetails) => {
-    const value: boolean = !!e.checked;
-    setChecked(value);
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('include_children', value ? 'true' : 'false');
-    router.push(`/clade/${cladeId}/revisions?${newSearchParams.toString()}`);
-  };
-
   return (
     <Stack width="full" gap="6">
       <Stack gap="1">
@@ -102,28 +104,27 @@ export const CladeHistoryTable = ({
       </Stack>
 
       <Flex gap="3" align="center" justify="space-between" wrap="wrap">
-        <Flex gap="3" align="center" wrap="wrap">
-          <Box maxW="full" overflowX="auto">
-            <SegmentedControl
-              size="sm"
-              defaultValue="All"
-              items={MODE_FILTERS as unknown as string[]}
-              value={modeFilter}
-              onValueChange={(e) =>
-                setModeFilter((e.value ?? 'All') as 'All' | RevisionMode)
-              }
-            />
-          </Box>
+        <Box maxW="full" overflowX="auto">
+          <SegmentedControl
+            size="sm"
+            defaultValue="All"
+            items={MODE_FILTERS as unknown as string[]}
+            value={modeFilter}
+            onValueChange={(e) =>
+              setModeFilter((e.value ?? 'All') as 'All' | RevisionMode)
+            }
+          />
+        </Box>
 
-          <Checkbox
-            checked={checked}
-            onCheckedChange={handleChecked}
-            fontWeight="light"
-            color="gray"
-          >
-            Show child nodes
-          </Checkbox>
-        </Flex>
+        {/* TODO: re-enable when child-node history is implemented
+        <Checkbox
+          checked={checked}
+          onCheckedChange={handleChecked}
+          fontWeight="light"
+          color="gray"
+        >
+          Show child nodes
+        </Checkbox> */}
 
         <InputGroup
           flex="1"
