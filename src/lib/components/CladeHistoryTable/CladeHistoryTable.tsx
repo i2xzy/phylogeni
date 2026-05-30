@@ -1,26 +1,11 @@
 'use client';
 
-import {
-  Box,
-  Flex,
-  HStack,
-  Heading,
-  Input,
-  Stack,
-  Text,
-} from '@chakra-ui/react';
-import {
-  PaginationItems,
-  PaginationNextTrigger,
-  PaginationPrevTrigger,
-  PaginationPageText,
-  PaginationRoot,
-} from 'components/ui/pagination';
+import { Box, Flex, Heading, Input, Stack, Text } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 import { RiSearchLine } from 'react-icons/ri';
 import { InputGroup } from '~/components/ui/input-group';
 import { SegmentedControl } from '~/components/ui/segmented-control';
-import { RevisionMode, RevisionWithUser } from '~/types/database';
+import { CladeDetails, RevisionMode, RevisionWithUser } from '~/types/database';
 import RevisionFeedItem from './RevisionFeedItem';
 // TODO: restore with the "show child nodes" history filter
 // import { CheckboxCheckedChangeDetails } from '@chakra-ui/react';
@@ -36,17 +21,22 @@ const MODE_FILTERS: Array<'All' | RevisionMode> = [
   'MERGE',
 ];
 
+// Display the filter values as title case (Create, Update…) while keeping the
+// underlying enum value for filtering.
+const MODE_FILTER_ITEMS = MODE_FILTERS.map((value) => ({
+  value,
+  label: value.charAt(0) + value.slice(1).toLowerCase(),
+}));
+
 export const CladeHistoryTable = ({
   rows,
-  cladeName,
+  clade,
 }: {
   rows: RevisionWithUser[];
-  cladeName: string | undefined;
+  clade: CladeDetails | null;
 }) => {
-  const [page, setPage] = useState(1);
   const [searchText, setSearchText] = useState('');
   const [modeFilter, setModeFilter] = useState<'All' | RevisionMode>('All');
-  const rowsPerPage = 18;
 
   // TODO: re-enable with the "show child nodes" history filter (needs a
   // `cladeId` prop to build the navigation URL).
@@ -82,15 +72,6 @@ export const CladeHistoryTable = ({
     });
   }, [rows, modeFilter, searchText]);
 
-  const currentRows = useMemo(
-    () =>
-      filteredRows.slice(
-        (page - 1) * rowsPerPage,
-        (page - 1) * rowsPerPage + rowsPerPage
-      ),
-    [filteredRows, page]
-  );
-
   return (
     <Stack width="full" gap="6">
       <Stack gap="1">
@@ -98,21 +79,33 @@ export const CladeHistoryTable = ({
         <Text fontSize="sm" fontWeight="medium" color="fg.muted">
           {`${rows.length} ${rows.length === 1 ? 'change' : 'changes'} made to `}
           <Text as="span" color="teal.fg">
-            {cladeName}
+            {clade?.name}
           </Text>
         </Text>
       </Stack>
 
-      <Flex gap="3" align="center" justify="space-between" wrap="wrap">
-        <Box maxW="full" overflowX="auto">
+      <Flex
+        gap="3"
+        direction={{ base: 'column', md: 'row' }}
+        align={{ base: 'flex-start', md: 'center' }}
+        justify="space-between"
+      >
+        <Box
+          maxW="full"
+          overflowX="auto"
+          p="1"
+          mx="-1"
+          alignSelf={{ base: 'center', sm: 'flex-start' }}
+        >
           <SegmentedControl
             size="sm"
             defaultValue="All"
-            items={MODE_FILTERS as unknown as string[]}
+            items={MODE_FILTER_ITEMS}
             value={modeFilter}
             onValueChange={(e) =>
               setModeFilter((e.value ?? 'All') as 'All' | RevisionMode)
             }
+            css={{ '& [data-part="item"]': { paddingInline: '2' } }}
           />
         </Box>
 
@@ -127,9 +120,10 @@ export const CladeHistoryTable = ({
         </Checkbox> */}
 
         <InputGroup
-          flex="1"
-          minW="14rem"
-          maxW="20rem"
+          width={{ base: 'full', sm: 'auto' }}
+          flex={{ md: 1 }}
+          minW={{ sm: '16rem' }}
+          maxW={{ md: '20rem' }}
           endElement={<RiSearchLine />}
         >
           <Input
@@ -140,10 +134,14 @@ export const CladeHistoryTable = ({
         </InputGroup>
       </Flex>
 
-      {currentRows.length > 0 ? (
+      {filteredRows.length > 0 ? (
         <Stack gap="0">
-          {currentRows.map((item) => (
-            <RevisionFeedItem key={item.id} revision={item} />
+          {filteredRows.map((item) => (
+            <RevisionFeedItem
+              key={item.id}
+              revision={item}
+              currentClade={clade}
+            />
           ))}
         </Stack>
       ) : (
@@ -154,23 +152,6 @@ export const CladeHistoryTable = ({
               : 'No revisions match your filters.'}
           </Text>
         </Box>
-      )}
-
-      {filteredRows.length > rowsPerPage && (
-        <PaginationRoot
-          count={filteredRows.length}
-          pageSize={rowsPerPage}
-          variant="solid"
-          onPageChange={(e) => setPage(e.page)}
-          page={page}
-        >
-          <HStack wrap="wrap">
-            <PaginationPageText color="fg.muted" format="long" flex="1" />
-            <PaginationPrevTrigger />
-            <PaginationItems />
-            <PaginationNextTrigger />
-          </HStack>
-        </PaginationRoot>
       )}
     </Stack>
   );

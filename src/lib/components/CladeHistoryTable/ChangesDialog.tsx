@@ -1,7 +1,6 @@
 'use client';
 
-import { Badge, Box, Stack, Text } from '@chakra-ui/react';
-import { FaCaretRight } from 'react-icons/fa';
+import { Badge, Box, Stack, Table, Text } from '@chakra-ui/react';
 import { Button } from '~/components/ui/button';
 import {
   DialogBody,
@@ -12,18 +11,52 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '~/components/ui/dialog';
-import CladeChangeBox from './CladeChangeBox';
-import { RevisionMode, RevisionWithUser } from '~/types/database';
+import {
+  CladeDetails,
+  CladeSnapshot,
+  RevisionWithUser,
+} from '~/types/database';
 
-const MODE_COLORS: Record<RevisionMode, string> = {
-  CREATE: 'green',
-  UPDATE: 'blue',
-  DELETE: 'red',
-  MOVE: 'purple',
-  MERGE: 'orange',
+type FieldKey = 'name' | 'rank' | 'extant' | 'common_names' | 'description';
+
+const FIELDS: Array<{ key: FieldKey; label: string }> = [
+  { key: 'name', label: 'Name' },
+  { key: 'rank', label: 'Rank' },
+  { key: 'extant', label: 'Status' },
+  { key: 'common_names', label: 'Common names' },
+  { key: 'description', label: 'Description' },
+];
+
+const read = (
+  source: CladeDetails | CladeSnapshot | null | undefined,
+  key: FieldKey
+) => (source ? source[key] : null);
+
+const format = (key: FieldKey, value: unknown): string => {
+  if (key === 'extant') {
+    return value === true ? 'Extant' : value === false ? 'Extinct' : '—';
+  }
+  if (Array.isArray(value)) return value.length ? value.join(', ') : '—';
+  if (value == null || value === '') return '—';
+  return String(value);
 };
 
-const ChangesDialog = ({ revision }: { revision: RevisionWithUser }) => {
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+const ChangesDialog = ({
+  revision,
+  currentClade,
+}: {
+  revision: RevisionWithUser;
+  currentClade: CladeDetails | null;
+}) => {
   const cladeName =
     revision.before?.name ??
     revision.after?.name ??
@@ -39,57 +72,60 @@ const ChangesDialog = ({ revision }: { revision: RevisionWithUser }) => {
       size="xl"
     >
       <DialogTrigger asChild>
-        <Button unstyled _hover={{ color: 'teal' }} fontSize="xs">
+        <Button
+          unstyled
+          color="teal.fg"
+          fontWeight="medium"
+          _hover={{ textDecoration: 'underline' }}
+          fontSize="xs"
+        >
           view
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <Stack paddingX=".6rem">
-            <DialogTitle>{`Changes by ${userLabel}`}</DialogTitle>
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <Box display="flex" alignItems="center" gap=".5rem">
-                <Badge
-                  size="lg"
-                  colorPalette={MODE_COLORS[revision.mode]}
-                  variant="subtle"
-                  marginRight=".5rem"
-                >
-                  {revision.mode}
-                </Badge>
-                <Text fontSize="md" fontWeight="light" color="gray.400">
-                  {cladeName}
-                </Text>
-              </Box>
-              <Text color="gray.400">
-                {new Date(revision.created_at).toLocaleString()}
+          <Stack gap="2">
+            <DialogTitle>Changes to {cladeName}</DialogTitle>
+            <Box display="flex" alignItems="center" gap=".5rem">
+              <Badge colorPalette="blue" variant="subtle">
+                {revision.mode}
+              </Badge>
+              <Text fontSize="sm" color="fg.muted">
+                by {userLabel} · {formatDate(revision.created_at)}
               </Text>
             </Box>
           </Stack>
         </DialogHeader>
-        <DialogBody display="flex" justifyContent="center" gap="3">
-          {revision.before && <CladeChangeBox snapshot={revision.before} />}
-          {revision.before && revision.after && (
-            <Box
-              paddingY={4}
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-            >
-              <FaCaretRight size={30} />
-            </Box>
-          )}
-          {revision.after && (
-            <CladeChangeBox
-              snapshot={revision.after}
-              other={revision.before}
-              changedFields={revision.changed_fields}
-            />
-          )}
+        <DialogBody>
+          <Table.Root size="sm" variant="outline">
+            <Table.Header>
+              <Table.Row>
+                <Table.ColumnHeader>Field</Table.ColumnHeader>
+                <Table.ColumnHeader>Current</Table.ColumnHeader>
+                <Table.ColumnHeader>Change</Table.ColumnHeader>
+                <Table.ColumnHeader>Previous</Table.ColumnHeader>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {FIELDS.map(({ key, label }) => {
+                const changed = revision.changed_fields.includes(key);
+                return (
+                  <Table.Row key={key}>
+                    <Table.Cell fontWeight="medium">{label}</Table.Cell>
+                    <Table.Cell color="fg.muted">
+                      {format(key, read(currentClade, key))}
+                    </Table.Cell>
+                    <Table.Cell bg={changed ? 'green.subtle' : undefined}>
+                      {format(key, read(revision.after, key))}
+                    </Table.Cell>
+                    <Table.Cell bg={changed ? 'red.subtle' : undefined}>
+                      {format(key, read(revision.before, key))}
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })}
+            </Table.Body>
+          </Table.Root>
         </DialogBody>
         <DialogCloseTrigger />
       </DialogContent>

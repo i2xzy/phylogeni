@@ -48,4 +48,6 @@ export type Revision = Omit<
 
 export interface RevisionWithUser extends Omit<Revision, 'user_id'> {
   user: ProfileRef | null;
+  /** Current name of the target clade (merge destination / new parent), if any. */
+  target_name: string | null;
 }

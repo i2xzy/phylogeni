@@ -3,7 +3,7 @@
 import { HStack, Stack, Text } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { Avatar } from '~/components/ui/avatar';
-import { RevisionWithUser } from '~/types/database';
+import { CladeDetails, RevisionWithUser } from '~/types/database';
 import ChangesDialog from './ChangesDialog';
 
 const formatTimestamp = (iso: string) => {
@@ -34,7 +34,7 @@ const CladeRef = ({
   }
   return (
     <NextLink href={`/clade/${id}`}>
-      <Text as="span" color="teal.300" fontWeight="medium">
+      <Text as="span" color="teal.fg" fontWeight="medium">
         {label}
       </Text>
     </NextLink>
@@ -44,7 +44,7 @@ const CladeRef = ({
 const UserRef = ({ user }: { user: RevisionWithUser['user'] }) => {
   if (!user) {
     return (
-      <Text as="span" color="gray.400">
+      <Text as="span" color="fg.muted">
         [deleted user]
       </Text>
     );
@@ -52,7 +52,7 @@ const UserRef = ({ user }: { user: RevisionWithUser['user'] }) => {
   const label = user.username ?? user.full_name ?? 'someone';
   return (
     <NextLink href={`/user/${user.username ?? user.id}`}>
-      <Text as="span" color="teal.300" fontWeight="medium">
+      <Text as="span" color="teal.fg" fontWeight="medium">
         {label}
       </Text>
     </NextLink>
@@ -61,7 +61,7 @@ const UserRef = ({ user }: { user: RevisionWithUser['user'] }) => {
 
 const RevisionSentence = ({ revision }: { revision: RevisionWithUser }) => {
   const cladeName = revision.before?.name ?? revision.after?.name;
-  const targetName = revision.after?.name; // for MERGE/MOVE, after.parent context isn't enough; rely on a future denorm
+  const targetName = revision.target_name;
   const fieldList = revision.changed_fields.length
     ? revision.changed_fields.join(', ')
     : null;
@@ -75,7 +75,11 @@ const RevisionSentence = ({ revision }: { revision: RevisionWithUser }) => {
           {revision.target_clade_id != null && (
             <>
               {' '}
-              under <CladeRef id={revision.target_clade_id} />
+              as a child of{' '}
+              <CladeRef
+                id={revision.target_clade_id}
+                fallbackName={targetName}
+              />
             </>
           )}{' '}
           by <UserRef user={revision.user} />.
@@ -89,7 +93,7 @@ const RevisionSentence = ({ revision }: { revision: RevisionWithUser }) => {
           {fieldList && (
             <>
               .{' '}
-              <Text as="span" color="gray.400">
+              <Text as="span" color="fg.muted">
                 {fieldList}
               </Text>
             </>
@@ -108,7 +112,7 @@ const RevisionSentence = ({ revision }: { revision: RevisionWithUser }) => {
       return (
         <Text>
           <CladeRef id={revision.clade_id} fallbackName={cladeName} /> was moved
-          under{' '}
+          to be a child of{' '}
           <CladeRef id={revision.target_clade_id} fallbackName={targetName} />{' '}
           by <UserRef user={revision.user} />.
         </Text>
@@ -125,7 +129,13 @@ const RevisionSentence = ({ revision }: { revision: RevisionWithUser }) => {
   }
 };
 
-const RevisionFeedItem = ({ revision }: { revision: RevisionWithUser }) => {
+const RevisionFeedItem = ({
+  revision,
+  currentClade,
+}: {
+  revision: RevisionWithUser;
+  currentClade: CladeDetails | null;
+}) => {
   const userLabel = revision.user?.username ?? revision.user?.full_name ?? '?';
   return (
     <HStack
@@ -133,7 +143,7 @@ const RevisionFeedItem = ({ revision }: { revision: RevisionWithUser }) => {
       gap="3"
       paddingY="3"
       borderBottom="1px solid"
-      borderColor="gray.700"
+      borderColor="border"
       _last={{ borderBottom: 'none' }}
     >
       <Avatar
@@ -141,14 +151,14 @@ const RevisionFeedItem = ({ revision }: { revision: RevisionWithUser }) => {
         name={userLabel}
         src={revision.user?.avatar_url ?? undefined}
       />
-      <Stack gap="1" flex="1">
+      <Stack gap="1" flex="1" fontSize={{ base: 'sm', md: 'md' }}>
         <RevisionSentence revision={revision} />
-        <HStack gap="2" color="gray.400" fontSize="xs">
+        <HStack gap="2" color="fg.muted" fontSize="xs">
           <Text>{formatTimestamp(revision.created_at)}</Text>
           {revision.mode === 'UPDATE' && (
             <>
               <Text>·</Text>
-              <ChangesDialog revision={revision} />
+              <ChangesDialog revision={revision} currentClade={currentClade} />
             </>
           )}
         </HStack>

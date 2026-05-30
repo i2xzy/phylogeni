@@ -12,7 +12,8 @@ const getRevisions = async (cladeId: string): Promise<RevisionWithUser[]> => {
     .select(
       `
       *,
-      profiles (id, username, full_name, avatar_url)
+      profiles (id, username, full_name, avatar_url),
+      target:taxa!clade_revisions_target_clade_id_fkey (name)
     `
     )
     .or(`clade_id.eq.${id},target_clade_id.eq.${id}`)
@@ -28,9 +29,10 @@ const getRevisions = async (cladeId: string): Promise<RevisionWithUser[]> => {
     changed_fields: row.changed_fields,
     summary: row.summary,
     created_at: row.created_at,
-    before: (row.before as CladeSnapshot | null) ?? null,
-    after: (row.after as CladeSnapshot | null) ?? null,
+    before: row.before as CladeSnapshot | null,
+    after: row.after as CladeSnapshot | null,
     user: row.profiles,
+    target_name: row.target?.name ?? null,
   }));
 };
 
