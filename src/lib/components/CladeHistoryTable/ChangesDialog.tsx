@@ -58,8 +58,9 @@ const ChangesDialog = ({
   currentClade: CladeDetails | null;
 }) => {
   const cladeName =
-    revision.before?.name ??
+    currentClade?.name ??
     revision.after?.name ??
+    revision.before?.name ??
     `clade ${revision.clade_id}`;
   const userLabel =
     revision.user?.username ?? revision.user?.full_name ?? 'unknown user';
