@@ -28,35 +28,31 @@ const getSubtree = async (idParam?: string): Promise<Node | null> => {
 
   if (nodeId == null) return null;
 
-  const [{ data, error }, { data: rootMeta }] = await Promise.all([
-    supabase.rpc('get_taxa_tree', { node_id: nodeId, depth: 6 }),
-    supabase.from('taxa').select('parent_id').eq('id', nodeId).maybeSingle(),
-  ]);
+  const { data, error } = await supabase.rpc('get_taxa_tree', {
+    node_id: nodeId,
+    depth: 6,
+  });
 
   if (error) {
     console.error('error', error);
     return null;
   }
 
-  const rootParentId = rootMeta?.parent_id ?? null;
   const item = data as CladeTreeNode | null;
 
-  const resolveNode = (node: CladeTreeNode, isRoot = false): Node => {
-    const parentId = isRoot ? rootParentId : node.parent_id;
-    return {
-      ...node,
+  const resolveNode = (node: CladeTreeNode): Node => ({
+    ...node,
+    id: node.id.toString(),
+    children: node.children?.map(resolveNode) ?? [],
+    attributes: {
       id: node.id.toString(),
-      children: node.children?.map((c) => resolveNode(c, false)) ?? [],
-      attributes: {
-        id: node.id.toString(),
-        extant: node.extant ?? false,
-        lineage: parentId != null ? [parentId.toString()] : [],
-        hasChildren: node.hasChildren,
-      },
-    };
-  };
+      extant: node.extant ?? false,
+      lineage: node.parent_id != null ? [node.parent_id.toString()] : [],
+      hasChildren: node.hasChildren,
+    },
+  });
 
-  return item ? resolveNode(item, true) : null;
+  return item ? resolveNode(item) : null;
 };
 
 export default getSubtree;
