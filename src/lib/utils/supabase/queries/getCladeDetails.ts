@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '~/types/supabase';
 import { CladeDetails, LineageNode } from '~/types/database';
+import { createClient } from '~/lib/utils/supabase/server';
 import resolveCladeId from './resolveCladeId';
 
 const MAX_LINEAGE_DEPTH = 64;
@@ -34,9 +35,9 @@ const fetchLineage = async (
 };
 
 const getCladeDetails = async (
-  supabase: SupabaseClient<Database>,
   idParam: string
 ): Promise<CladeDetails | null> => {
+  const supabase = await createClient();
   const cladeId = await resolveCladeId(supabase, idParam);
   if (cladeId == null) return null;
 

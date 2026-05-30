@@ -7,7 +7,7 @@ import { getNodeDetails as getOttData } from '~/lib/utils/ott';
 import GbifResultCard from './GbifResultCard';
 import NodeDetails from './NodeDetails';
 import OttResultCard from './OttResultCard';
-import getCladeById from './getCladeById';
+import getCladeDetails from '~/lib/utils/supabase/queries/getCladeDetails';
 
 export const metadata: Metadata = {
   title: 'Node details',
@@ -33,7 +33,7 @@ const Page = async ({ searchParams }: PageProps<'/node-details'>) => {
 
   // console.log(queryResults);
 
-  const result = id ? await getCladeById(id as string) : null;
+  const result = id ? await getCladeDetails(id as string) : null;
   // console.log(result);
 
   // const children = result?.id ? await getNodeChildren(result.id) : null;
