@@ -20,11 +20,10 @@ const LIFE_ROOT_ID = 27484;
 const getSubtree = async (idParam?: string): Promise<Node | null> => {
   const supabase = await createClient();
 
-  let nodeId: number | null = LIFE_ROOT_ID;
-
-  if (idParam) {
-    nodeId = await resolveCladeId(supabase, idParam);
-  }
+  // Default to the Life root directly — no need to resolve it.
+  const nodeId = idParam
+    ? await resolveCladeId(supabase, idParam)
+    : LIFE_ROOT_ID;
 
   if (nodeId == null) return null;
 
