@@ -17,14 +17,13 @@ import {
   RevisionWithUser,
 } from '~/types/database';
 
-type FieldKey = 'name' | 'rank' | 'extant' | 'common_names' | 'description';
+type FieldKey = 'name' | 'rank' | 'extant' | 'common_names';
 
 const FIELDS: Array<{ key: FieldKey; label: string }> = [
   { key: 'name', label: 'Name' },
   { key: 'rank', label: 'Rank' },
   { key: 'extant', label: 'Status' },
   { key: 'common_names', label: 'Common names' },
-  { key: 'description', label: 'Description' },
 ];
 
 const read = (
