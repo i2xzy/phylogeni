@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '~/lib/utils/supabase/server';
+import { Clade, CladeSnapshot } from '~/types/database';
 
 const EDIT_ROLES = ['editor', 'curator', 'admin'];
 
@@ -14,16 +15,7 @@ export type UpdateCladeInput = {
   common_names: string[];
 };
 
-type TaxaRow = {
-  id: number;
-  name: string;
-  parent_id: number | null;
-  rank: string | null;
-  extant: boolean | null;
-  common_names: string[] | null;
-};
-
-const snapshot = (row: TaxaRow) => ({
+const snapshot = (row: Clade): CladeSnapshot => ({
   id: row.id,
   name: row.name,
   parent_id: row.parent_id,
