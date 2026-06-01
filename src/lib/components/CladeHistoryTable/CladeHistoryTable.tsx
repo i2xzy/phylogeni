@@ -1,8 +1,14 @@
 'use client';
 
 import { Box, Flex, Heading, Input, Stack, Text } from '@chakra-ui/react';
+import NextLink from 'next/link';
 import { useMemo, useState } from 'react';
 import { RiSearchLine } from 'react-icons/ri';
+import {
+  BreadcrumbCurrentLink,
+  BreadcrumbLink,
+  BreadcrumbRoot,
+} from '~/components/ui/breadcrumb';
 import { InputGroup } from '~/components/ui/input-group';
 import { SegmentedControl } from '~/components/ui/segmented-control';
 import { CladeDetails, RevisionMode, RevisionWithUser } from '~/types/database';
@@ -74,11 +80,19 @@ export const CladeHistoryTable = ({
 
   return (
     <Stack width="full" gap="6">
+      {clade && (
+        <BreadcrumbRoot>
+          <BreadcrumbLink asChild>
+            <NextLink href={`/clade/${clade.id}`}>{clade.name}</NextLink>
+          </BreadcrumbLink>
+          <BreadcrumbCurrentLink>Revision history</BreadcrumbCurrentLink>
+        </BreadcrumbRoot>
+      )}
       <Stack gap="1">
         <Heading size="xl">Clade Revision History</Heading>
         <Text fontSize="sm" fontWeight="medium" color="fg.muted">
           {`${rows.length} ${rows.length === 1 ? 'change' : 'changes'} made to `}
-          <Text as="span" color="teal.fg">
+          <Text as="span" color="fg">
             {clade?.name}
           </Text>
         </Text>

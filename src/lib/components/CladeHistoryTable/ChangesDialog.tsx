@@ -73,13 +73,7 @@ const ChangesDialog = ({
       size="xl"
     >
       <DialogTrigger asChild>
-        <Button
-          unstyled
-          color="teal.fg"
-          fontWeight="medium"
-          _hover={{ textDecoration: 'underline' }}
-          fontSize="xs"
-        >
+        <Button unstyled color="teal.fg" fontWeight="medium" fontSize="xs">
           view
         </Button>
       </DialogTrigger>
