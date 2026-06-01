@@ -1,8 +1,8 @@
 'use client';
 
 import { HStack, Stack, Text } from '@chakra-ui/react';
-import NextLink from 'next/link';
 import { Avatar } from '~/components/ui/avatar';
+import { TextLink } from '~/components/ui/text-link';
 import { CladeDetails, RevisionWithUser } from '~/types/database';
 import ChangesDialog from './ChangesDialog';
 
@@ -33,11 +33,9 @@ const CladeRef = ({
     );
   }
   return (
-    <NextLink href={`/clade/${id}`}>
-      <Text as="span" color="teal.fg" fontWeight="medium">
-        {label}
-      </Text>
-    </NextLink>
+    <TextLink href={`/clade/${id}`} fontWeight="medium">
+      {label}
+    </TextLink>
   );
 };
 
@@ -51,11 +49,9 @@ const UserRef = ({ user }: { user: RevisionWithUser['user'] }) => {
   }
   const label = user.username ?? user.full_name ?? 'someone';
   return (
-    <NextLink href={`/user/${user.username ?? user.id}`}>
-      <Text as="span" color="teal.fg" fontWeight="medium">
-        {label}
-      </Text>
-    </NextLink>
+    <TextLink href={`/user/${user.username ?? user.id}`} fontWeight="medium">
+      {label}
+    </TextLink>
   );
 };
 

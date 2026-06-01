@@ -2,7 +2,6 @@ import {
   Box,
   Container,
   Icon,
-  Link,
   Stack,
   Text,
   List,
@@ -21,6 +20,7 @@ import {
   BreadcrumbRoot,
 } from '~/components/ui/breadcrumb';
 import { DataListItem, DataListRoot } from '~/components/ui/data-list';
+import { TextLink } from '~/components/ui/text-link';
 
 import getCladeById from './getCladeById';
 import InfoBox from './infobox';
@@ -114,15 +114,9 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
             <DataListItem
               label="Parent"
               value={
-                <Link
-                  asChild
-                  color="teal.fg"
-                  _hover={{ textDecoration: 'none' }}
-                >
-                  <NextLink href={`/clade/${data.parent}`}>
-                    {data.lineage?.[0]?.name}
-                  </NextLink>
-                </Link>
+                <TextLink href={`/clade/${data.parent}`}>
+                  {data.lineage?.[0]?.name}
+                </TextLink>
               }
             />
           </DataListRoot>
@@ -133,13 +127,7 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
               <List.Root listStylePosition="inside">
                 {data.children.map((child) => (
                   <List.Item key={child.id}>
-                    <Link
-                      asChild
-                      color="teal.fg"
-                      _hover={{ textDecoration: 'none' }}
-                    >
-                      <NextLink href={child.id}>{child.name}</NextLink>
-                    </Link>
+                    <TextLink href={child.id}>{child.name}</TextLink>
                   </List.Item>
                 ))}
               </List.Root>
