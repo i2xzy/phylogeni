@@ -6,7 +6,6 @@ import { Combobox, createListCollection } from '@ark-ui/react';
 import { useRouter } from 'next/navigation';
 import { Center, DialogTrigger, Input, Text, chakra } from '@chakra-ui/react';
 
-import { Database } from '~/types/supabase';
 import { postFetcher } from '~/lib/utils/swr/fetchers';
 import { DialogContent, DialogRoot } from 'components/ui/dialog';
 import { ComboboxItem } from './ComboboxItem';
@@ -40,27 +39,27 @@ interface Item {
 
 const initialItems: Item[] = [
   {
-    value: '579b68753431084e0fdc5430',
+    value: '20716',
     label: 'Homininae',
     category: 'Great apes and humans',
   },
   {
-    value: '587eb692edafd34956b1dd1a',
+    value: '2672',
     label: 'Archosauria',
     category: 'Dinosaurs, birds and crocodiles',
   },
   {
-    value: '57a8baf1343108933d3a8f36',
+    value: '134',
     label: 'Felidae',
     category: 'Cats',
   },
   {
-    value: '5878ebea365f536a716e2311',
+    value: '990',
     label: 'Canidae',
     category: 'Dogs',
   },
   {
-    value: '57af13b0343108290570722c',
+    value: '994',
     label: 'Ursidae',
     category: 'Bears',
   },
@@ -71,23 +70,28 @@ interface Props {
   disableHotkey?: boolean;
 }
 
-type Clade = Database['public']['Tables']['clades']['Row'];
+type SearchResult = {
+  id: number;
+  name: string;
+  extant: boolean | null;
+  rank: string | null;
+};
 
 export const CommandMenu = (props: Props) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const router = useRouter();
 
-  const { data, isLoading, mutate } = useSWR<Clade[]>(
+  const { data, isLoading, mutate } = useSWR<SearchResult[]>(
     inputValue ? ['/api/search', { query: inputValue }] : null,
     postFetcher
   );
 
   const results =
     data?.map((item) => ({
-      value: item.id,
+      value: item.id.toString(),
       label: `${item.extant === false ? '†' : ''}${item.name}`,
-      category: item.other_names,
+      category: item.rank,
     })) || [];
 
   const collection = createListCollection({ items: results });

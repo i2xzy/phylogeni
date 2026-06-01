@@ -2,18 +2,16 @@ import { Card, Heading, Stack, StackSeparator, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
 
 import DescriptionList from '~/lib/components/DescriptionList';
-import { Database } from '~/types/supabase';
 import type { OttNodeDetails } from '~/types/ott';
+import type { ChildNode, LineageNode, CladeDetails } from '~/types/database';
 
 import MatchText from './MatchText';
 
-type Clade = Database['public']['Tables']['clades']['Row'];
-
 type Props = {
   openTreeResult?: OttNodeDetails | null;
-  databaseResult: Clade;
-  lineage?: Clade[] | null;
-  directChildren?: Clade[] | null;
+  databaseResult: CladeDetails;
+  lineage?: LineageNode[] | null;
+  directChildren?: ChildNode[] | null;
 };
 
 const ResultCard = ({
@@ -70,7 +68,7 @@ const ResultCard = ({
             ]}
           />
 
-          {lineage?.length && (
+          {lineage && lineage.length > 0 && (
             <div>
               <Heading size="sm">Lineage</Heading>
               <DescriptionList

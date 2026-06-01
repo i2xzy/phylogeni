@@ -36,6 +36,7 @@ export default function AccountForm({
       if (error) throw new Error(error.message);
       alert('Profile updated!');
     } catch (error) {
+      console.error(error);
       alert('Error updating the data!');
     } finally {
       setLoading(false);

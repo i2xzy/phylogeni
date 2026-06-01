@@ -1,44 +1,53 @@
-export type XsdString = {
-  '@type': 'xsd:string';
-  '@value': string;
-};
+import { Database } from './supabase';
 
-export type XsdDecimal = {
-  '@type': 'xsd:decimal';
-  '@value': number;
-};
+/** A canonical clade row (currently backed by the `taxa` table). */
+export type Clade = Database['public']['Tables']['taxa']['Row'];
 
-export type TrueFalse = '@schema:TrueFalse/True' | '@schema:TrueFalse/False';
-
-export type Clade = {
+/** A clade as it appears in a lineage/breadcrumb trail. */
+export type LineageNode = Pick<Clade, 'name' | 'rank' | 'parent_id'> & {
   id: string;
-  name: XsdString;
-  rank?: XsdString;
-  extant?: TrueFalse;
-  parent?: string;
-  ott_id?: XsdString;
-  common_name?: XsdString;
 };
 
-export type Result<T> = {
-  bindings: T[];
-};
-
-export type Node = {
+/** A direct child of a clade. */
+export type ChildNode = Pick<Clade, 'name' | 'rank' | 'extant'> & {
   id: string;
+};
+
+/** A clade plus its resolved lineage and direct children, for detail views. */
+export type CladeDetails = Clade & {
+  description: string | null;
+  parent: string | null;
+  lineage: LineageNode[];
+  children: ChildNode[];
+};
+
+export type RevisionMode = Database['public']['Enums']['revision_mode'];
+
+export type CladeSnapshot = {
+  id: number;
   name: string;
-  commonNames?: string;
-  rank?: string;
-  extant?: string;
-  ott_id: string;
+  parent_id: number | null;
+  rank: string | null;
+  extant: boolean | null;
+  common_names: string[] | null;
+  description?: string | null;
 };
 
-export type NodeDetails = Node & {
-  parent?: string;
-  parentName?: string;
-  sources?: {
-    name: string;
-    id: string;
-    link: string | null;
-  }[];
+export type ProfileRef = Pick<
+  Database['public']['Tables']['profiles']['Row'],
+  'id' | 'username' | 'full_name' | 'avatar_url'
+>;
+
+export type Revision = Omit<
+  Database['public']['Tables']['clade_revisions']['Row'],
+  'before' | 'after'
+> & {
+  before: CladeSnapshot | null;
+  after: CladeSnapshot | null;
 };
+
+export interface RevisionWithUser extends Omit<Revision, 'user_id'> {
+  user: ProfileRef | null;
+  /** Current name of the target clade (merge destination / new parent), if any. */
+  target_name: string | null;
+}

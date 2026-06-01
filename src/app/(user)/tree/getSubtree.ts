@@ -1,49 +1,55 @@
 import { createClient } from '~/lib/utils/supabase/server';
+import resolveCladeId from '~/lib/utils/supabase/queries/resolveCladeId';
 import type { Node } from '~/types/tree';
 
-type Clade = {
-  id: string;
+type CladeTreeNode = {
+  id: number;
   name: string;
-  parent: string;
-  extant: boolean;
+  parent_id: number | null;
+  extant: boolean | null;
   hasChildren: boolean;
-  children: Clade[];
+  children: CladeTreeNode[];
 };
 
-const getSubtree = async (
-  id = '55ae8ce9343108fa191058d2'
-): Promise<Node | null> => {
-  if (!id) return null;
+// id of the `Life` root in the canonical `taxa` table. Hardcoded to avoid an
+// extra lookup on every tree page load. If the data is ever reseeded and this
+// number changes, update it (or run `select id from taxa where name = 'Life'
+// and parent_id is null`).
+const LIFE_ROOT_ID = 27484;
 
+const getSubtree = async (idParam?: string): Promise<Node | null> => {
   const supabase = await createClient();
 
-  const { data, error } = await supabase.rpc('get_clades_tree', {
-    node_id: id,
-    depth: 5,
+  // Default to the Life root directly — no need to resolve it.
+  const nodeId = idParam
+    ? await resolveCladeId(supabase, idParam)
+    : LIFE_ROOT_ID;
+
+  if (nodeId == null) return null;
+
+  const { data, error } = await supabase.rpc('get_taxa_tree', {
+    node_id: nodeId,
+    depth: 6,
   });
-  // console.log(data, error);
 
   if (error) {
     console.error('error', error);
     return null;
   }
-  // console.log('data', data);
 
-  const item = data as Clade | null;
+  const item = data as CladeTreeNode | null;
 
-  const resolveNode = (node: Clade): Node => {
-    return {
-      ...node,
+  const resolveNode = (node: CladeTreeNode): Node => ({
+    ...node,
+    id: node.id.toString(),
+    children: node.children?.map(resolveNode) ?? [],
+    attributes: {
       id: node.id.toString(),
-      children: node.children.map(resolveNode),
-      attributes: {
-        id: node.id.toString(),
-        extant: node.extant,
-        lineage: [node.parent],
-        hasChildren: node.hasChildren,
-      },
-    };
-  };
+      extant: node.extant ?? false,
+      lineage: node.parent_id != null ? [node.parent_id.toString()] : [],
+      hasChildren: node.hasChildren,
+    },
+  });
 
   return item ? resolveNode(item) : null;
 };

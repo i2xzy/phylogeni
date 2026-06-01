@@ -2,14 +2,13 @@ import {
   Box,
   Container,
   Icon,
-  Link,
   Stack,
   Text,
   List,
   Heading,
   Separator,
 } from '@chakra-ui/react';
-import { RiEdit2Fill } from 'react-icons/ri';
+import { RiEdit2Fill, RiHistoryFill } from 'react-icons/ri';
 import { TbBinaryTree } from 'react-icons/tb';
 import { Metadata } from 'next';
 import NextLink from 'next/link';
@@ -21,6 +20,7 @@ import {
   BreadcrumbRoot,
 } from '~/components/ui/breadcrumb';
 import { DataListItem, DataListRoot } from '~/components/ui/data-list';
+import { TextLink } from '~/components/ui/text-link';
 
 import getCladeById from './getCladeById';
 import InfoBox from './infobox';
@@ -101,6 +101,9 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
             <NavLink href={`/clade/${data.id}/edit`}>
               <RiEdit2Fill size="1.4em" /> Edit
             </NavLink>
+            <NavLink href={`/clade/${data.id}/revisions`}>
+              <RiHistoryFill size="1.4em" /> History
+            </NavLink>
           </Stack>
           <DataListRoot orientation="horizontal" gap="2">
             <DataListItem label="Name" value={data.name} />
@@ -111,24 +114,20 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
             <DataListItem
               label="Parent"
               value={
-                <Link asChild>
-                  <NextLink href={`/node-details?id=${data.parent}`}>
-                    {data.lineage?.[0]?.name}
-                  </NextLink>
-                </Link>
+                <TextLink href={`/clade/${data.parent}`}>
+                  {data.lineage?.[0]?.name}
+                </TextLink>
               }
             />
           </DataListRoot>
 
-          {data.children?.length && (
+          {data.children && data.children.length > 0 && (
             <Stack gap="3">
               <Text fontWeight="medium">Children</Text>
-              <List.Root>
+              <List.Root listStylePosition="inside">
                 {data.children.map((child) => (
                   <List.Item key={child.id}>
-                    <Link asChild>
-                      <NextLink href={child.id}>{child.name}</NextLink>
-                    </Link>
+                    <TextLink href={child.id}>{child.name}</TextLink>
                   </List.Item>
                 ))}
               </List.Root>

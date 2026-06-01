@@ -15,7 +15,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { LuPlus } from 'react-icons/lu';
 
-import { Database } from '~/types/supabase';
+import { Clade } from '~/types/database';
 import { Field } from '~/components/ui/field';
 import { Radio, RadioGroup } from '~/components/ui/radio';
 import {
@@ -25,8 +25,6 @@ import {
   SelectTrigger,
   SelectValueText,
 } from '~/components/ui/select';
-
-type Clade = Database['public']['Tables']['clades']['Row'];
 
 const ranks = createListCollection({
   items: [
@@ -68,7 +66,7 @@ export default function CladeEditForm({ clade }: { clade: Clade }) {
               <Field label="Common name">
                 <Input
                   placeholder="Common name"
-                  defaultValue={clade?.other_names || ''}
+                  defaultValue={(clade?.common_names ?? []).join(', ')}
                 />
               </Field>
 
