@@ -315,7 +315,7 @@ export type Database = {
           parent_id: number;
         }[];
       };
-      get_clade_details: { Args: { clade_id: string }; Returns: Json };
+      get_clade_details: { Args: { clade_id: number }; Returns: Json };
       get_clades_tree: {
         Args: { depth: number; node_id: string };
         Returns: Json;
