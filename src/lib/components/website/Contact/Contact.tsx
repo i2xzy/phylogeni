@@ -8,7 +8,7 @@ import * as Yup from 'yup';
 
 import { Button } from '~/components/ui/button';
 import { Field } from '~/components/ui/field';
-import { Toaster, toaster } from '~/components/ui/toaster';
+import { toaster } from '~/components/ui/toaster';
 
 const SERVICE_ID = 'service_096y1mn';
 const TEMPLATE_ID = 'template_v1ctwus';
@@ -43,7 +43,6 @@ const Contact = () => {
 
   return (
     <form onSubmit={formik.handleSubmit}>
-      <Toaster />
       <Stack gap={4}>
         <Field label="Name">
           <Input
