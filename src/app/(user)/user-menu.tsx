@@ -1,5 +1,3 @@
-'use client';
-
 import { IconButton } from '@chakra-ui/react';
 import Link from 'next/link';
 import { LuLogOut } from 'react-icons/lu';
