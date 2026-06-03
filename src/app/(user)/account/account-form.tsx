@@ -13,7 +13,6 @@ import {
   Text,
 } from '@chakra-ui/react';
 import type { User } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { LuLogOut, LuUpload, LuTrash2 } from 'react-icons/lu';
@@ -26,6 +25,7 @@ import { toaster } from '~/components/ui/toaster';
 import { createClient } from '~/lib/utils/supabase/client';
 import { formatDate } from '~/lib/utils/date';
 import { storagePathFromAvatarUrl } from '~/lib/utils/avatar';
+import { saveProfile } from './actions';
 
 interface Props extends User {
   id: string;
@@ -43,7 +43,6 @@ export default function AccountForm({
   user_metadata,
 }: Props) {
   const supabase = createClient();
-  const router = useRouter();
 
   // Avatar photo from an OAuth provider (e.g. Google), if the user has one.
   const providerAvatarUrl: string | undefined =
@@ -83,7 +82,6 @@ export default function AccountForm({
   const updateProfile = async () => {
     try {
       setLoading(true);
-      const newUpdatedAt = new Date().toISOString();
 
       let newAvatarUrl = originalAvatarUrl ?? '';
 
@@ -126,18 +124,21 @@ export default function AccountForm({
         newAvatarUrl = '';
       }
 
-      const { error } = await supabase.from('profiles').upsert({
-        id: id as string,
-        full_name: fullname,
-        updated_at: newUpdatedAt,
-        avatar_url: newAvatarUrl,
+      // Storage stays client-side (so large uploads don't round-trip through
+      // the server); validation and the profiles write happen in the action,
+      // which also revalidates this route so the "Last updated" time refreshes.
+      const result = await saveProfile({
+        fullName: fullname ?? '',
+        avatarUrl: newAvatarUrl,
       });
-
-      if (error) throw new Error(error.message);
-
-      // Refetch the server component so the "Last updated" timestamp (and any
-      // other server-derived data) reflects the save.
-      router.refresh();
+      if (result?.error) {
+        toaster.create({
+          title: 'Something went wrong',
+          description: result.error,
+          type: 'error',
+        });
+        return;
+      }
 
       toaster.create({
         title: 'Profile updated',
