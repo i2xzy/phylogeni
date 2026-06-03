@@ -14,7 +14,7 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from '~/components/ui/menu';
-import { downloadAvatar } from './account/account-form';
+import { resolveAvatarUrl } from './account/account-form';
 import { useEffect, useState } from 'react';
 
 export interface UserMenuProps {
@@ -27,9 +27,9 @@ const UserMenu = ({ email, full_name, avatar_url }: UserMenuProps) => {
   const [avatarUrl, setAvatarUrl] = useState(avatar_url);
 
   useEffect(() => {
-    // convert the path to url
+    // resolve a storage path or external url to a displayable image url
     if (avatar_url) {
-      downloadAvatar(avatar_url).then((url) => setAvatarUrl(url));
+      resolveAvatarUrl(avatar_url).then(setAvatarUrl);
     }
   }, [avatar_url]);
 

@@ -2,21 +2,31 @@
 
 import {
   Box,
+  Card,
   FileUploadTrigger,
+  Flex,
+  HStack,
   Heading,
+  IconButton,
   Input,
   Stack,
   Text,
 } from '@chakra-ui/react';
 import type { User } from '@supabase/supabase-js';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toaster } from '~/components/ui/toaster';
 import { Avatar } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
 import { Field } from '~/components/ui/field';
 import { createClient } from '~/lib/utils/supabase/client';
+import { formatDate } from '~/lib/utils/date';
 import { LuLogOut, LuUpload, LuTrash2 } from 'react-icons/lu';
+import { FcGoogle } from 'react-icons/fc';
 import { FileUploadRoot } from '~/components/ui/file-upload';
+
+// An avatar value can be a Supabase Storage path (uploaded) or an external
+// URL (e.g. a Google account photo from OAuth sign-in).
+const isUrl = (value: string) => /^https?:\/\//i.test(value);
 
 interface Props extends User {
   id: string;
@@ -31,35 +41,46 @@ export default function AccountForm({
   full_name,
   avatar_url,
   updated_at,
+  user_metadata,
 }: Props) {
   const supabase = createClient();
+
+  // Avatar photo from an OAuth provider (e.g. Google), if the user has one.
+  const providerAvatarUrl: string | undefined =
+    user_metadata?.avatar_url ?? user_metadata?.picture;
   const [loading, setLoading] = useState(false);
   const [fullname, setFullname] = useState(full_name);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(updated_at);
 
-  const avatarRef = useRef<HTMLInputElement>(null);
   const [avatarUrl, setAvatarUrl] = useState(avatar_url);
   const [originalAvatarUrl] = useState(avatar_url);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    // convert the path to url
+    // resolve the stored value (storage path or external url) to a preview
     if (avatar_url) {
-      downloadAvatar(avatar_url).then((url) => setAvatarUrl(url));
+      resolveAvatarUrl(avatar_url).then(setAvatarUrl);
     }
-  }, [avatar_url, supabase]);
+  }, [avatar_url]);
 
-  const deleteAvatar = () => {
-    //if image has been changed within the current session
-    if (avatarRef.current?.files?.length) {
-      avatarRef.current.value = '';
-    }
-    setAvatarUrl('');
+  const selectImage = (file: File) => {
+    setSelectedFile(file);
+    setSelectedUrl(null);
+    setAvatarUrl(URL.createObjectURL(file));
   };
 
-  const updateImage = () => {
-    if (avatarRef.current?.files?.length) {
-      setAvatarUrl(URL.createObjectURL(avatarRef.current?.files[0]));
-    }
+  const useProviderAvatar = () => {
+    if (!providerAvatarUrl) return;
+    setSelectedFile(null);
+    setSelectedUrl(providerAvatarUrl);
+    setAvatarUrl(providerAvatarUrl);
+  };
+
+  const deleteAvatar = () => {
+    setSelectedFile(null);
+    setSelectedUrl(null);
+    setAvatarUrl('');
   };
 
   const updateProfile = async () => {
@@ -68,31 +89,42 @@ export default function AccountForm({
       const newUpdatedAt = new Date().toISOString();
       setLastUpdatedAt(newUpdatedAt);
 
-      let filePath;
+      let filePath = originalAvatarUrl ?? '';
 
-      if (avatarRef.current?.files && avatarRef.current?.files?.length !== 0) {
-        const file = avatarRef?.current?.files[0];
-        const fileExt = file.name.split('.').pop();
+      // Only uploaded avatars live in storage; external URLs (e.g. Google) don't.
+      const oldUploadedPath =
+        originalAvatarUrl && !isUrl(originalAvatarUrl)
+          ? originalAvatarUrl
+          : null;
+
+      if (selectedFile) {
+        // A new image was uploaded: store it and drop the old uploaded file.
+        const fileExt = selectedFile.name.split('.').pop();
         filePath = `${id}-${Math.random()}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(filePath, file);
+          .upload(filePath, selectedFile);
+        if (uploadError) throw uploadError;
 
-        if (uploadError) {
-          throw uploadError;
+        if (oldUploadedPath) {
+          await supabase.storage.from('avatars').remove([oldUploadedPath]);
         }
-      } else {
-        if (originalAvatarUrl) {
-          const { data, error } = await supabase.storage
+      } else if (selectedUrl) {
+        // An external avatar (e.g. the Google photo) was chosen: store the URL.
+        filePath = selectedUrl;
+        if (oldUploadedPath) {
+          await supabase.storage.from('avatars').remove([oldUploadedPath]);
+        }
+      } else if (!avatarUrl && originalAvatarUrl) {
+        // The avatar was removed without choosing a new one.
+        if (oldUploadedPath) {
+          const { error: removeError } = await supabase.storage
             .from('avatars')
-            .remove([originalAvatarUrl]);
-
-          filePath = '';
-          console.log(data);
-
-          if (error) throw error;
+            .remove([oldUploadedPath]);
+          if (removeError) throw removeError;
         }
+        filePath = '';
       }
 
       const { error } = await supabase.from('profiles').upsert({
@@ -110,8 +142,7 @@ export default function AccountForm({
 
       toaster.create({
         title: 'Profile updated',
-        description: `Last updated ${updated_at}`,
-        //type: "success",
+        type: 'success',
       });
     } catch (error) {
       console.log(error);
@@ -135,142 +166,122 @@ export default function AccountForm({
   return (
     <Stack
       as="main"
-      width={{ xl: '50%', mdDown: '90%' }}
-      margin={'auto'}
-      padding={{ base: '20px', md: '40px' }}
-      marginTop={{ xl: '6rem', md: 0 }}
+      width="full"
+      maxW="2xl"
+      margin="auto"
+      px={{ base: 4, md: 8 }}
+      py={{ base: 6, md: 10 }}
+      gap={6}
     >
-      <Heading
-        fontSize={'2rem'}
-        justifyContent={'center'}
-        alignContent={'center'}
-        width={'full'}
-        textAlign={'center'}
-      >
-        Account Details
-      </Heading>
+      <Heading size="2xl">Account</Heading>
 
-      <Box
-        display={'flex'}
-        flexDir={{ xlTo2xl: 'row', mdDown: 'column' }}
-        marginTop={'3rem'}
-        gap={'3rem'}
-        justifyContent={'space-between'}
-      >
-        <Box
-          width={'100%'}
-          display={'flex'}
-          flexDirection={'column'}
-          justifyContent={'space-between'}
-        >
-          <Field label="Email">
-            <Input id="email" type="text" value={email} disabled />
-          </Field>
-          <Field
-            invalid={!fullname || !validateString(fullname)}
-            label="Full name"
-            errorText="Invalid"
-            style={{ marginTop: '2rem' }}
+      <Card.Root>
+        <Card.Header>
+          <Heading size="md">Profile photo</Heading>
+        </Card.Header>
+        <Card.Body>
+          <Flex
+            gap={6}
+            align="center"
+            direction={{ base: 'column', sm: 'row' }}
           >
-            <Input
-              id="fullName"
-              type="text"
-              value={fullname || ''}
-              onChange={(e) => setFullname(e.target.value)}
-            />
-          </Field>
-
-          <Text
-            color={'grey'}
-            marginTop={'2rem'}
-            paddingBottom={'.4rem'}
-            fontWeight={'light'}
-            fontSize={'.9rem'}
-          >
-            Last updated{' '}
-            {lastUpdatedAt && new Date(lastUpdatedAt).toDateString()}
-          </Text>
-        </Box>
-
-        <Box
-          width={'100%'}
-          display={'flex'}
-          flexDirection={'column'}
-          justifyContent={'space-between'}
-        >
-          <Box display={'flex'} justifyContent={'center'}>
-            {avatar_url ? (
+            <Box position="relative" flexShrink={0}>
               <Avatar
-                size="xl"
-                src={avatarUrl}
-                name={full_name}
-                width={'9rem'}
-                height={'9rem'}
-              />
-            ) : (
-              <Avatar
-                background={'var(--chakra-colors-teal-800)'}
-                color={'var(--chakra-colors-teal-400)'}
-                width={'9rem'}
-                height={'9rem'}
+                colorPalette="teal"
+                boxSize="9rem"
+                src={avatarUrl || undefined}
                 name={full_name}
               />
-            )}
-          </Box>
-          <Box
-            display={'flex'}
-            gap={'15px'}
-            alignItems={'center'}
-            alignContent={'center'}
-            marginTop={'2rem'}
-            justifyContent={'center'}
-          >
-            <Button
-              onClick={deleteAvatar}
-              variant="outline"
-              colorPalette="red"
-              size="sm"
-              disabled={!avatar_url}
+              {avatarUrl && (
+                <IconButton
+                  aria-label="Remove photo"
+                  onClick={deleteAvatar}
+                  size="xs"
+                  rounded="full"
+                  colorPalette="red"
+                  position="absolute"
+                  bottom="1"
+                  right="1"
+                  shadow="md"
+                >
+                  <LuTrash2 />
+                </IconButton>
+              )}
+            </Box>
+            <HStack
+              wrap="wrap"
+              gap={3}
+              justify={{ base: 'center', sm: 'flex-start' }}
             >
-              <LuTrash2 />
-              Remove avatar
-            </Button>
+              <FileUploadRoot
+                accept={'image/*'}
+                onFileChange={(details) => {
+                  const file = details.acceptedFiles[0];
+                  if (file) selectImage(file);
+                }}
+              >
+                <FileUploadTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <LuUpload /> Upload image
+                  </Button>
+                </FileUploadTrigger>
+              </FileUploadRoot>
 
-            <FileUploadRoot
-              accept={'image/*'}
-              ref={avatarRef}
-              onChange={updateImage}
-            >
-              <FileUploadTrigger asChild>
-                <Button id="AvatarFileUpload" variant="outline" size="sm">
-                  <LuUpload /> Upload image
+              {providerAvatarUrl && avatarUrl !== providerAvatarUrl && (
+                <Button
+                  onClick={useProviderAvatar}
+                  variant="outline"
+                  colorPalette="gray"
+                  size="sm"
+                >
+                  <FcGoogle /> Use Google photo
                 </Button>
-              </FileUploadTrigger>
-            </FileUploadRoot>
-          </Box>
-        </Box>
-      </Box>
+              )}
+            </HStack>
+          </Flex>
+        </Card.Body>
+      </Card.Root>
 
-      <Box
-        display={'flex'}
-        justifyContent={'space-between'}
-        alignContent={'center'}
-        marginTop={'6rem'}
-      >
-        <Box>
-          <form action="/api/auth/signout" method="post">
-            <Button variant="ghost" colorPalette="gray" type="submit">
-              <LuLogOut /> Sign out
-            </Button>
-          </form>
-        </Box>
+      <Card.Root>
+        <Card.Header>
+          <Heading size="md">Account details</Heading>
+        </Card.Header>
+        <Card.Body>
+          <Stack gap={4}>
+            <Field label="Email" helperText="Your email can't be changed.">
+              <Input value={email ?? ''} disabled />
+            </Field>
+            <Field
+              label="Full name"
+              invalid={!fullname || !validateString(fullname)}
+              errorText="Please use letters only."
+            >
+              <Input
+                value={fullname || ''}
+                onChange={(e) => setFullname(e.target.value)}
+              />
+            </Field>
+          </Stack>
+        </Card.Body>
+        {lastUpdatedAt && (
+          <Card.Footer>
+            <Text fontSize="sm" color="fg.muted">
+              Last updated {formatDate(lastUpdatedAt)}
+            </Text>
+          </Card.Footer>
+        )}
+      </Card.Root>
 
-        <Box>
-          <Button type="submit" onClick={updateProfile} disabled={loading}>
-            {loading ? 'Loading ...' : 'Update'}
+      <Flex justify="space-between" align="center" pt={2}>
+        <form action="/api/auth/signout" method="post">
+          <Button type="submit" variant="ghost" colorPalette="gray">
+            <LuLogOut /> Sign out
           </Button>
-        </Box>
-      </Box>
+        </form>
+        <Button type="button" onClick={updateProfile} loading={loading}>
+          Save changes
+        </Button>
+      </Flex>
     </Stack>
   );
 }
@@ -295,3 +306,8 @@ export const downloadAvatar = (path: string) => {
     }
   });
 };
+
+// Turn a stored avatar value into something an <img> can display: external
+// URLs (e.g. Google) pass through; storage paths are downloaded from the bucket.
+export const resolveAvatarUrl = (value: string): Promise<string> =>
+  isUrl(value) ? Promise.resolve(value) : downloadAvatar(value);
