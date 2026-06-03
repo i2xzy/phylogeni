@@ -51,7 +51,6 @@ export default function AccountForm({
   const [fullname, setFullname] = useState(full_name);
 
   const [avatarUrl, setAvatarUrl] = useState(avatar_url);
-  const [originalAvatarUrl] = useState(avatar_url);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
 
@@ -83,12 +82,12 @@ export default function AccountForm({
     try {
       setLoading(true);
 
-      let newAvatarUrl = originalAvatarUrl ?? '';
+      let newAvatarUrl = avatar_url ?? '';
 
       // The previous avatar is only worth deleting if it was a file we uploaded
       // (external URLs like Google have no storage path).
-      const oldUploadedPath = originalAvatarUrl
-        ? storagePathFromAvatarUrl(originalAvatarUrl)
+      const oldUploadedPath = avatar_url
+        ? storagePathFromAvatarUrl(avatar_url)
         : null;
 
       if (selectedFile) {
@@ -113,7 +112,7 @@ export default function AccountForm({
         if (oldUploadedPath) {
           await supabase.storage.from('avatars').remove([oldUploadedPath]);
         }
-      } else if (!avatarUrl && originalAvatarUrl) {
+      } else if (!avatarUrl && avatar_url) {
         // The avatar was removed without choosing a new one.
         if (oldUploadedPath) {
           const { error: removeError } = await supabase.storage
@@ -140,6 +139,10 @@ export default function AccountForm({
         return;
       }
 
+      // Clear pending selections so the form is no longer "dirty" post-save.
+      setSelectedFile(null);
+      setSelectedUrl(null);
+
       toaster.create({
         title: 'Profile updated',
         type: 'success',
@@ -162,6 +165,14 @@ export default function AccountForm({
     if (matches !== null) return false;
     return true;
   };
+
+  const nameValid = !!fullname && validateString(fullname);
+  const nameChanged = (fullname ?? '') !== (full_name ?? '');
+  const avatarChanged =
+    selectedFile !== null ||
+    selectedUrl !== null ||
+    (!avatarUrl && !!avatar_url);
+  const canSave = (nameChanged || avatarChanged) && nameValid;
 
   return (
     <Stack
@@ -278,7 +289,12 @@ export default function AccountForm({
             <LuLogOut /> Sign out
           </Button>
         </form>
-        <Button type="button" onClick={updateProfile} loading={loading}>
+        <Button
+          type="button"
+          onClick={updateProfile}
+          loading={loading}
+          disabled={!canSave}
+        >
           Save changes
         </Button>
       </Flex>
