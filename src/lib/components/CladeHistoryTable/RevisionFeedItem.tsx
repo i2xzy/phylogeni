@@ -4,8 +4,8 @@ import { HStack, Stack, Text } from '@chakra-ui/react';
 import { Avatar } from '~/components/ui/avatar';
 import { TextLink } from '~/components/ui/text-link';
 import { CladeDetails, RevisionWithUser } from '~/types/database';
-import ChangesDialog from './ChangesDialog';
 import { formatDateTime } from '~/lib/utils/date';
+import ChangesDialog from './ChangesDialog';
 
 const CladeRef = ({
   id,
