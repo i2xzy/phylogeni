@@ -1,5 +1,6 @@
 import { Icon, IconButton, Link } from '@chakra-ui/react';
 import {
+  RiDiscordFill,
   RiFacebookCircleFill,
   RiGithubFill,
   RiInstagramLine,
@@ -9,6 +10,7 @@ import {
 } from 'react-icons/ri';
 
 export enum Social {
+  DISCORD = 'discord',
   FACEBOOK = 'facebook',
   GITHUB = 'github',
   INSTAGRAM = 'instagram',
@@ -30,6 +32,7 @@ const SocialIcon = ({
   ...props
 }: SocialIconProps) => {
   const icons = {
+    [Social.DISCORD]: RiDiscordFill,
     [Social.FACEBOOK]: RiFacebookCircleFill,
     [Social.GITHUB]: RiGithubFill,
     [Social.INSTAGRAM]: RiInstagramLine,

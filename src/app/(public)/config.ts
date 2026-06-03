@@ -38,15 +38,12 @@ export const sections = [
 export const contact = {
   id: 'contact',
   title: 'Contact Us',
+  discordUrl: 'https://discord.gg/QmbuWsgR',
   content: `
-  If you would like more information about the Phylogeny Explorer Project, please contact one of our admins, or apply to become a member in our Facebook group, [Phylogeny Explorer Development](https://www.facebook.com/groups/phylogenyexplorerdevelopment/).
+  The quickest way to reach us and the wider community is the Discord server for [The Behold Network](https://discord.gg/QmbuWsgR), where we have a Phylogeny Explorer channel. It's a shared community server, not a dedicated one.
 
-  At the moment we grant only access to the Explorer if you meet one of multiple conditions:
+  If you reached out in the past and never heard back, our form was down for a long time, so please try again.
 
-  You are volunteering with us.
-  1. Have made a donation present or in the past.
-  2. Granting access at this point in time costs the Phylogeny Explorer Project lots of money and infrastructure. Once we are fully running we will give limited access to all people.
-
-  Please note we're in Alpha stage meaning we do not yet have the ability to edit the tree. Meaning not everything is in the correct order.
+  We're still actively developing, so some parts of the tree may be out of place. Pointing those out helps.
   `,
 };

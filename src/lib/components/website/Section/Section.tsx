@@ -1,5 +1,6 @@
 import { Box, Grid, Heading } from '@chakra-ui/react';
 import Image from 'next/image';
+import { RiDiscordFill } from 'react-icons/ri';
 
 import { Button } from '~/components/ui/button';
 import Markdown from '~/lib/components/Markdown';
@@ -11,9 +12,17 @@ type SectionProps = {
   content: string;
   image?: string;
   background?: string;
+  discordUrl?: string;
 };
 
-const Section = ({ id, title, content, image, background }: SectionProps) => {
+const Section = ({
+  id,
+  title,
+  content,
+  image,
+  background,
+  discordUrl,
+}: SectionProps) => {
   const isContact = id === 'contact';
 
   return (
@@ -46,14 +55,28 @@ const Section = ({ id, title, content, image, background }: SectionProps) => {
         maxW={1200}
         margin="0 auto"
         p={[8, 16]}
-        gap={8}
+        gap={[8, 16]}
         templateColumns={['unset', isContact ? '1fr 1fr' : '2fr 1fr']}
       >
-        <Box width="full" maxW={1200} margin="0 auto">
-          <Heading fontSize={['4xl', '5xl']} fontWeight="normal" mb={4}>
+        <Box width="full" display="flex" flexDirection="column">
+          <Heading fontSize={['4xl', '5xl']} fontWeight="normal" mb={6}>
             {title}
           </Heading>
           <Markdown>{content}</Markdown>
+          {isContact && discordUrl && (
+            <Button
+              asChild
+              alignSelf="center"
+              mt={6}
+              bg="#5865F2"
+              color="white"
+              _hover={{ bg: '#4752C4' }}
+            >
+              <a href={discordUrl} target="_blank" rel="noopener noreferrer">
+                <RiDiscordFill /> Join the Discord
+              </a>
+            </Button>
+          )}
         </Box>
         {isContact ? <Contact /> : <Button ml="auto">Get started</Button>}
       </Grid>

@@ -4,8 +4,8 @@ import SocialIcon, { Social } from '~/lib/components/SocialIcon';
 
 const ICONS = [
   {
-    platform: Social.FACEBOOK,
-    href: 'https://www.facebook.com/groups/phylogenyexplorerdevelopment/',
+    platform: Social.DISCORD,
+    href: 'https://discord.gg/QmbuWsgR',
   },
   {
     platform: Social.LINKEDIN,
