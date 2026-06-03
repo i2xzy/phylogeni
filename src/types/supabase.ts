@@ -141,6 +141,50 @@ export type Database = {
         };
         Relationships: [];
       };
+      contact_messages: {
+        Row: {
+          admin_notes: string | null;
+          created_at: string;
+          email: string;
+          handled_at: string | null;
+          handled_by: string | null;
+          id: number;
+          message: string;
+          name: string;
+          status: Database['public']['Enums']['contact_status'];
+        };
+        Insert: {
+          admin_notes?: string | null;
+          created_at?: string;
+          email: string;
+          handled_at?: string | null;
+          handled_by?: string | null;
+          id?: never;
+          message: string;
+          name: string;
+          status?: Database['public']['Enums']['contact_status'];
+        };
+        Update: {
+          admin_notes?: string | null;
+          created_at?: string;
+          email?: string;
+          handled_at?: string | null;
+          handled_by?: string | null;
+          id?: never;
+          message?: string;
+          name?: string;
+          status?: Database['public']['Enums']['contact_status'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'contact_messages_handled_by_fkey';
+            columns: ['handled_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
@@ -326,6 +370,7 @@ export type Database = {
       };
     };
     Enums: {
+      contact_status: 'new' | 'in_progress' | 'resolved';
       revision_mode: 'CREATE' | 'UPDATE' | 'DELETE' | 'MOVE' | 'MERGE';
       role: 'viewer' | 'editor' | 'curator' | 'admin';
       transaction_mode: 'CREATE' | 'DESTROY' | 'UPDATE';
@@ -460,6 +505,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      contact_status: ['new', 'in_progress', 'resolved'],
       revision_mode: ['CREATE', 'UPDATE', 'DELETE', 'MOVE', 'MERGE'],
       role: ['viewer', 'editor', 'curator', 'admin'],
       transaction_mode: ['CREATE', 'DESTROY', 'UPDATE'],
