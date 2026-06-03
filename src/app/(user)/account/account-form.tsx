@@ -13,16 +13,18 @@ import {
   Text,
 } from '@chakra-ui/react';
 import type { User } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { toaster } from '~/components/ui/toaster';
+import { FcGoogle } from 'react-icons/fc';
+import { LuLogOut, LuUpload, LuTrash2 } from 'react-icons/lu';
+
 import { Avatar } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
 import { Field } from '~/components/ui/field';
+import { FileUploadRoot } from '~/components/ui/file-upload';
+import { toaster } from '~/components/ui/toaster';
 import { createClient } from '~/lib/utils/supabase/client';
 import { formatDate } from '~/lib/utils/date';
-import { LuLogOut, LuUpload, LuTrash2 } from 'react-icons/lu';
-import { FcGoogle } from 'react-icons/fc';
-import { FileUploadRoot } from '~/components/ui/file-upload';
 
 // An avatar value can be a Supabase Storage path (uploaded) or an external
 // URL (e.g. a Google account photo from OAuth sign-in).
@@ -44,13 +46,13 @@ export default function AccountForm({
   user_metadata,
 }: Props) {
   const supabase = createClient();
+  const router = useRouter();
 
   // Avatar photo from an OAuth provider (e.g. Google), if the user has one.
   const providerAvatarUrl: string | undefined =
     user_metadata?.avatar_url ?? user_metadata?.picture;
   const [loading, setLoading] = useState(false);
   const [fullname, setFullname] = useState(full_name);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState(updated_at);
 
   const [avatarUrl, setAvatarUrl] = useState(avatar_url);
   const [originalAvatarUrl] = useState(avatar_url);
@@ -87,7 +89,6 @@ export default function AccountForm({
     try {
       setLoading(true);
       const newUpdatedAt = new Date().toISOString();
-      setLastUpdatedAt(newUpdatedAt);
 
       let filePath = originalAvatarUrl ?? '';
 
@@ -136,9 +137,9 @@ export default function AccountForm({
 
       if (error) throw new Error(error.message);
 
-      //Updates the state without needing to refresh
-      setLastUpdatedAt(newUpdatedAt);
-      setFullname(fullname);
+      // Refetch the server component so the "Last updated" timestamp (and any
+      // other server-derived data) reflects the save.
+      router.refresh();
 
       toaster.create({
         title: 'Profile updated',
@@ -263,10 +264,10 @@ export default function AccountForm({
             </Field>
           </Stack>
         </Card.Body>
-        {lastUpdatedAt && (
+        {updated_at && (
           <Card.Footer>
             <Text fontSize="sm" color="fg.muted">
-              Last updated {formatDate(lastUpdatedAt)}
+              Last updated {formatDate(updated_at)}
             </Text>
           </Card.Footer>
         )}
