@@ -25,10 +25,7 @@ import { FileUploadRoot } from '~/components/ui/file-upload';
 import { toaster } from '~/components/ui/toaster';
 import { createClient } from '~/lib/utils/supabase/client';
 import { formatDate } from '~/lib/utils/date';
-
-// An avatar value can be a Supabase Storage path (uploaded) or an external
-// URL (e.g. a Google account photo from OAuth sign-in).
-const isUrl = (value: string) => /^https?:\/\//i.test(value);
+import { storagePathFromAvatarUrl } from '~/lib/utils/avatar';
 
 interface Props extends User {
   id: string;
@@ -60,10 +57,8 @@ export default function AccountForm({
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    // resolve the stored value (storage path or external url) to a preview
-    if (avatar_url) {
-      resolveAvatarUrl(avatar_url).then(setAvatarUrl);
-    }
+    // Keep the preview in sync with the stored URL after a save/refresh.
+    setAvatarUrl(avatar_url);
   }, [avatar_url]);
 
   const selectImage = (file: File) => {
@@ -90,30 +85,33 @@ export default function AccountForm({
       setLoading(true);
       const newUpdatedAt = new Date().toISOString();
 
-      let filePath = originalAvatarUrl ?? '';
+      let newAvatarUrl = originalAvatarUrl ?? '';
 
-      // Only uploaded avatars live in storage; external URLs (e.g. Google) don't.
-      const oldUploadedPath =
-        originalAvatarUrl && !isUrl(originalAvatarUrl)
-          ? originalAvatarUrl
-          : null;
+      // The previous avatar is only worth deleting if it was a file we uploaded
+      // (external URLs like Google have no storage path).
+      const oldUploadedPath = originalAvatarUrl
+        ? storagePathFromAvatarUrl(originalAvatarUrl)
+        : null;
 
       if (selectedFile) {
-        // A new image was uploaded: store it and drop the old uploaded file.
+        // Upload the new image and store its public URL.
         const fileExt = selectedFile.name.split('.').pop();
-        filePath = `${id}-${Math.random()}.${fileExt}`;
+        const path = `${id}-${Math.random()}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(filePath, selectedFile);
+          .upload(path, selectedFile);
         if (uploadError) throw uploadError;
+
+        newAvatarUrl = supabase.storage.from('avatars').getPublicUrl(path)
+          .data.publicUrl;
 
         if (oldUploadedPath) {
           await supabase.storage.from('avatars').remove([oldUploadedPath]);
         }
       } else if (selectedUrl) {
-        // An external avatar (e.g. the Google photo) was chosen: store the URL.
-        filePath = selectedUrl;
+        // An external avatar (e.g. the Google photo) was chosen.
+        newAvatarUrl = selectedUrl;
         if (oldUploadedPath) {
           await supabase.storage.from('avatars').remove([oldUploadedPath]);
         }
@@ -125,14 +123,14 @@ export default function AccountForm({
             .remove([oldUploadedPath]);
           if (removeError) throw removeError;
         }
-        filePath = '';
+        newAvatarUrl = '';
       }
 
       const { error } = await supabase.from('profiles').upsert({
         id: id as string,
         full_name: fullname,
         updated_at: newUpdatedAt,
-        avatar_url: filePath,
+        avatar_url: newAvatarUrl,
       });
 
       if (error) throw new Error(error.message);
@@ -286,29 +284,3 @@ export default function AccountForm({
     </Stack>
   );
 }
-
-export const downloadAvatar = (path: string) => {
-  return new Promise<string>(async (resolve, reject) => {
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .download(path);
-      if (error) throw new Error(error.message);
-
-      if (data) {
-        const url = URL.createObjectURL(data);
-        resolve(url);
-      }
-      if (error) throw new Error('Failed to create object url');
-    } catch (error) {
-      console.log('Error downloading image: ', error);
-      reject(error);
-    }
-  });
-};
-
-// Turn a stored avatar value into something an <img> can display: external
-// URLs (e.g. Google) pass through; storage paths are downloaded from the bucket.
-export const resolveAvatarUrl = (value: string): Promise<string> =>
-  isUrl(value) ? Promise.resolve(value) : downloadAvatar(value);

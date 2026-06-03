@@ -1,6 +1,7 @@
 import { createClient } from '~/lib/utils/supabase/server';
+import { isStorageAvatarUrl } from '~/lib/utils/avatar';
 
-// A stored avatar is either an uploaded file (storage path) or an external
+// A stored avatar is either a file we uploaded (a storage URL) or an external
 // provider URL (e.g. Google). Only the latter should be auto-synced.
 const isUrl = (value: string) => /^https?:\/\//i.test(value);
 
@@ -34,9 +35,13 @@ export async function GET(req: Request) {
       const current = profile?.avatar_url ?? '';
 
       // Only refresh when the user is already using their provider (Google)
-      // photo. Leave custom uploads (storage paths) and an empty avatar (which
+      // photo. Leave custom uploads (storage URLs) and an empty avatar (which
       // means the user opted out of showing one) untouched.
-      if (isUrl(current) && current !== providerAvatar) {
+      if (
+        isUrl(current) &&
+        !isStorageAvatarUrl(current) &&
+        current !== providerAvatar
+      ) {
         await supabase
           .from('profiles')
           .update({ avatar_url: providerAvatar })

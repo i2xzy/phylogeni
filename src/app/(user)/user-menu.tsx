@@ -14,8 +14,6 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from '~/components/ui/menu';
-import { resolveAvatarUrl } from './account/account-form';
-import { useEffect, useState } from 'react';
 
 export interface UserMenuProps {
   email: string;
@@ -24,20 +22,11 @@ export interface UserMenuProps {
 }
 
 const UserMenu = ({ email, full_name, avatar_url }: UserMenuProps) => {
-  const [avatarUrl, setAvatarUrl] = useState(avatar_url);
-
-  useEffect(() => {
-    // resolve a storage path or external url to a displayable image url
-    if (avatar_url) {
-      resolveAvatarUrl(avatar_url).then(setAvatarUrl);
-    }
-  }, [avatar_url]);
-
   return (
     <MenuRoot loopFocus>
       <MenuTrigger asChild>
         <IconButton aria-label="user menu" variant="ghost">
-          <Avatar size="sm" src={avatarUrl || undefined} name={full_name} />
+          <Avatar size="sm" src={avatar_url || undefined} name={full_name} />
         </IconButton>
       </MenuTrigger>
       <MenuContent>
