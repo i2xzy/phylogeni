@@ -5,17 +5,7 @@ import { Avatar } from '~/components/ui/avatar';
 import { TextLink } from '~/components/ui/text-link';
 import { CladeDetails, RevisionWithUser } from '~/types/database';
 import ChangesDialog from './ChangesDialog';
-
-const formatTimestamp = (iso: string) => {
-  const d = new Date(iso);
-  return d.toLocaleString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-};
+import { formatDateTime } from '~/lib/utils/date';
 
 const CladeRef = ({
   id,
@@ -150,7 +140,7 @@ const RevisionFeedItem = ({
       <Stack gap="1" flex="1" fontSize={{ base: 'sm', md: 'md' }}>
         <RevisionSentence revision={revision} />
         <HStack gap="2" color="fg.muted" fontSize="xs">
-          <Text>{formatTimestamp(revision.created_at)}</Text>
+          <Text>{formatDateTime(revision.created_at)}</Text>
           {revision.mode === 'UPDATE' && (
             <>
               <Text>·</Text>

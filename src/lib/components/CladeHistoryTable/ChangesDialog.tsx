@@ -16,6 +16,7 @@ import {
   CladeSnapshot,
   RevisionWithUser,
 } from '~/types/database';
+import { formatDateTime } from '~/lib/utils/date';
 
 type FieldKey = 'name' | 'rank' | 'extant' | 'common_names';
 
@@ -39,15 +40,6 @@ const format = (key: FieldKey, value: unknown): string => {
   if (value == null || value === '') return '—';
   return String(value);
 };
-
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
 
 const ChangesDialog = ({
   revision,
@@ -85,7 +77,7 @@ const ChangesDialog = ({
                 {revision.mode}
               </Badge>
               <Text fontSize="sm" color="fg.muted">
-                by {userLabel} · {formatDate(revision.created_at)}
+                by {userLabel} · {formatDateTime(revision.created_at)}
               </Text>
             </Box>
           </Stack>

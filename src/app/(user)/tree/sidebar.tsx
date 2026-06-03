@@ -8,6 +8,7 @@ import { LuImage } from 'react-icons/lu';
 import { TbBinaryTree } from 'react-icons/tb';
 
 import { fetcher } from '~/lib/utils/swr/fetchers';
+import { formatDate } from '~/lib/utils/date';
 import { EmptyState } from '~/components/ui/empty-state';
 import { CloseButton } from '~/components/ui/close-button';
 import SidebarButton from '~/lib/components/CladeSidebar/SidebarButton';
@@ -115,7 +116,7 @@ export default function Sidebar({ nodeId, onClose }: Props) {
       {data.last_edited && (
         <Flex paddingInline="6" pt="4" pb="6" justify="end">
           <Text fontSize="sm" color="subtle">
-            Last edited {new Date(data.last_edited).toLocaleDateString()}
+            Last edited {formatDate(data.last_edited)}
           </Text>
         </Flex>
       )}
