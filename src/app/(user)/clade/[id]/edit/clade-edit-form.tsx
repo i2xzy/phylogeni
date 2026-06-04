@@ -11,6 +11,7 @@ import {
   Heading,
   Input,
   Stack,
+  Tabs,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState, useTransition } from 'react';
@@ -186,68 +187,105 @@ export default function CladeEditForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Stack w="full" gap={8}>
-        <Card.Root>
-          <Card.Header>
-            <Heading size="md">Details</Heading>
-          </Card.Header>
-          <Card.Body>
-            <Stack gap={4}>
-              <Field label="Name">
-                <Input
-                  placeholder="Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </Field>
+    <Tabs.Root defaultValue="details" variant="line" w="full">
+      <Tabs.List>
+        <Tabs.Trigger value="details">Details</Tabs.Trigger>
+        <Tabs.Trigger value="parent">Parent</Tabs.Trigger>
+        <Tabs.Trigger value="sources">Sources &amp; links</Tabs.Trigger>
+      </Tabs.List>
 
-              <Field label="Common names" helperText="Separate with commas.">
-                <Input
-                  placeholder="e.g. cats, felids"
-                  value={commonNames}
-                  onChange={(e) => setCommonNames(e.target.value)}
-                />
-              </Field>
+      <Tabs.Content value="details">
+        <form onSubmit={handleSubmit}>
+          <Stack w="full" gap={8}>
+            <Card.Root>
+              <Card.Header>
+                <Heading size="md">Details</Heading>
+              </Card.Header>
+              <Card.Body>
+                <Stack gap={4}>
+                  <Field label="Name">
+                    <Input
+                      placeholder="Name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </Field>
 
-              <Field label="Rank">
-                <SelectRoot
-                  collection={ranks}
-                  value={[rank]}
-                  onValueChange={(e) => setRank(e.value[0])}
-                >
-                  <SelectTrigger>
-                    <SelectValueText placeholder="Select rank" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ranks.items.map((item) => (
-                      <SelectItem item={item} key={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </SelectRoot>
-              </Field>
+                  <Field
+                    label="Common names"
+                    helperText="Separate with commas."
+                  >
+                    <Input
+                      placeholder="e.g. cats, felids"
+                      value={commonNames}
+                      onChange={(e) => setCommonNames(e.target.value)}
+                    />
+                  </Field>
 
-              <Field label="Status">
-                <RadioGroup
-                  value={extant === null ? null : extant ? 'extant' : 'extinct'}
-                  onValueChange={(e) => setExtant(e.value === 'extant')}
-                >
-                  <Stack gap={5} direction="row">
-                    <Radio colorPalette="red" value="extinct">
-                      Extinct
-                    </Radio>
-                    <Radio colorPalette="green" value="extant">
-                      Extant
-                    </Radio>
-                  </Stack>
-                </RadioGroup>
-              </Field>
-            </Stack>
-          </Card.Body>
-        </Card.Root>
+                  <Field label="Rank">
+                    <SelectRoot
+                      collection={ranks}
+                      value={[rank]}
+                      onValueChange={(e) => setRank(e.value[0])}
+                    >
+                      <SelectTrigger>
+                        <SelectValueText placeholder="Select rank" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ranks.items.map((item) => (
+                          <SelectItem item={item} key={item.value}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </Field>
 
+                  <Field label="Status">
+                    <RadioGroup
+                      value={
+                        extant === null ? null : extant ? 'extant' : 'extinct'
+                      }
+                      onValueChange={(e) => setExtant(e.value === 'extant')}
+                    >
+                      <Stack gap={5} direction="row">
+                        <Radio colorPalette="red" value="extinct">
+                          Extinct
+                        </Radio>
+                        <Radio colorPalette="green" value="extant">
+                          Extant
+                        </Radio>
+                      </Stack>
+                    </RadioGroup>
+                  </Field>
+                </Stack>
+              </Card.Body>
+            </Card.Root>
+
+            <ButtonGroup alignSelf="flex-end">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => router.back()}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" variant="outline" loading={isPending}>
+                Save
+              </Button>
+              <Button
+                type="button"
+                loading={isPending}
+                onClick={() => save(true)}
+              >
+                Save and exit
+              </Button>
+            </ButtonGroup>
+          </Stack>
+        </form>
+      </Tabs.Content>
+
+      <Tabs.Content value="parent">
         <Card.Root>
           <Card.Header>
             <Heading size="md">Parent</Heading>
@@ -261,7 +299,7 @@ export default function CladeEditForm({
             <Stack gap={3}>
               <Field
                 label="Move to a new parent"
-                helperText="Search for the clade that should become the parent."
+                helperText="Search for the clade that should become the parent. The move applies immediately."
               >
                 <CladeSearchSelect
                   value={selectedParent}
@@ -285,7 +323,9 @@ export default function CladeEditForm({
             </Stack>
           </Card.Body>
         </Card.Root>
+      </Tabs.Content>
 
+      <Tabs.Content value="sources">
         <ComingSoonCard
           title="External sources & links"
           helper="Link this clade to other databases and reference pages."
@@ -346,19 +386,7 @@ export default function CladeEditForm({
             </Fieldset.Root>
           </Stack>
         </ComingSoonCard>
-
-        <ButtonGroup alignSelf="flex-end">
-          <Button type="button" variant="ghost" onClick={() => router.back()}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="outline" loading={isPending}>
-            Save
-          </Button>
-          <Button type="button" loading={isPending} onClick={() => save(true)}>
-            Save and exit
-          </Button>
-        </ButtonGroup>
-      </Stack>
-    </form>
+      </Tabs.Content>
+    </Tabs.Root>
   );
 }
