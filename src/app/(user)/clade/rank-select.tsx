@@ -51,7 +51,7 @@ export default function RankSelect({
       {code === null && (
         <SegmentedControl
           alignSelf="flex-start"
-          size="sm"
+          size="xs"
           value={override}
           onValueChange={(e) => setOverride(e.value ?? ALL)}
           items={[
