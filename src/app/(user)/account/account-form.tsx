@@ -13,7 +13,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import type { User } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { LuLogOut, LuUpload, LuTrash2 } from 'react-icons/lu';
 
@@ -25,6 +25,7 @@ import { toaster } from '~/components/ui/toaster';
 import { createClient } from '~/lib/utils/supabase/client';
 import { formatDate } from '~/lib/utils/date';
 import { storagePathFromAvatarUrl } from '~/lib/utils/avatar';
+import { isValidFullName } from '~/lib/utils/name';
 import { saveProfile } from './actions';
 
 interface Props extends User {
@@ -54,25 +55,43 @@ export default function AccountForm({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
 
+  // Holds the object URL for a locally-picked file so we can revoke it; the
+  // browser won't free the blob on its own.
+  const objectUrlRef = useRef<string | null>(null);
+  const revokeObjectUrl = () => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+  };
+
   useEffect(() => {
     // Keep the preview in sync with the stored URL after a save/refresh.
     setAvatarUrl(avatar_url);
   }, [avatar_url]);
 
+  // Revoke any outstanding object URL when the form unmounts.
+  useEffect(() => revokeObjectUrl, []);
+
   const selectImage = (file: File) => {
+    revokeObjectUrl();
+    const previewUrl = URL.createObjectURL(file);
+    objectUrlRef.current = previewUrl;
     setSelectedFile(file);
     setSelectedUrl(null);
-    setAvatarUrl(URL.createObjectURL(file));
+    setAvatarUrl(previewUrl);
   };
 
   const useProviderAvatar = () => {
     if (!providerAvatarUrl) return;
+    revokeObjectUrl();
     setSelectedFile(null);
     setSelectedUrl(providerAvatarUrl);
     setAvatarUrl(providerAvatarUrl);
   };
 
   const deleteAvatar = () => {
+    revokeObjectUrl();
     setSelectedFile(null);
     setSelectedUrl(null);
     setAvatarUrl('');
@@ -84,53 +103,49 @@ export default function AccountForm({
 
       let newAvatarUrl = avatar_url ?? '';
 
-      // The previous avatar is only worth deleting if it was a file we uploaded
-      // (external URLs like Google have no storage path).
+      // The previous uploaded file (if any), deleted only AFTER the profile
+      // write succeeds. External URLs (e.g. Google) have no storage path.
       const oldUploadedPath = avatar_url
         ? storagePathFromAvatarUrl(avatar_url)
         : null;
+      // A file uploaded during this save, tracked so we can roll it back if the
+      // profile write fails.
+      let uploadedPath: string | null = null;
 
       if (selectedFile) {
-        // Upload the new image and store its public URL.
-        const fileExt = selectedFile.name.split('.').pop();
-        const path = `${id}-${Math.random()}.${fileExt}`;
+        const ext = selectedFile.name.split('.').pop();
+        uploadedPath = `${id}-${crypto.randomUUID()}${ext ? `.${ext}` : ''}`;
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(path, selectedFile);
+          .upload(uploadedPath, selectedFile, {
+            contentType: selectedFile.type || undefined,
+          });
         if (uploadError) throw uploadError;
 
-        newAvatarUrl = supabase.storage.from('avatars').getPublicUrl(path)
-          .data.publicUrl;
-
-        if (oldUploadedPath) {
-          await supabase.storage.from('avatars').remove([oldUploadedPath]);
-        }
+        newAvatarUrl = supabase.storage
+          .from('avatars')
+          .getPublicUrl(uploadedPath).data.publicUrl;
       } else if (selectedUrl) {
         // An external avatar (e.g. the Google photo) was chosen.
         newAvatarUrl = selectedUrl;
-        if (oldUploadedPath) {
-          await supabase.storage.from('avatars').remove([oldUploadedPath]);
-        }
       } else if (!avatarUrl && avatar_url) {
         // The avatar was removed without choosing a new one.
-        if (oldUploadedPath) {
-          const { error: removeError } = await supabase.storage
-            .from('avatars')
-            .remove([oldUploadedPath]);
-          if (removeError) throw removeError;
-        }
         newAvatarUrl = '';
       }
 
-      // Storage stays client-side (so large uploads don't round-trip through
-      // the server); validation and the profiles write happen in the action,
-      // which also revalidates this route so the "Last updated" time refreshes.
+      // Validation and the profiles write happen in the action (storage stays
+      // client-side so large uploads don't round-trip through the server). The
+      // action also revalidates this route so "Last updated" refreshes.
       const result = await saveProfile({
         fullName: fullname ?? '',
         avatarUrl: newAvatarUrl,
       });
       if (result?.error) {
+        // Roll back the just-uploaded file so a failed save leaves no orphan.
+        if (uploadedPath) {
+          await supabase.storage.from('avatars').remove([uploadedPath]);
+        }
         toaster.create({
           title: 'Something went wrong',
           description: result.error,
@@ -139,7 +154,14 @@ export default function AccountForm({
         return;
       }
 
+      // Save committed: now it's safe to delete the previous uploaded file, but
+      // only if the avatar actually changed away from it.
+      if (oldUploadedPath && newAvatarUrl !== avatar_url) {
+        await supabase.storage.from('avatars').remove([oldUploadedPath]);
+      }
+
       // Clear pending selections so the form is no longer "dirty" post-save.
+      revokeObjectUrl();
       setSelectedFile(null);
       setSelectedUrl(null);
 
@@ -148,7 +170,7 @@ export default function AccountForm({
         type: 'success',
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toaster.create({
         title: 'Something went wrong',
         description: 'Profile was not updated',
@@ -159,14 +181,7 @@ export default function AccountForm({
     }
   };
 
-  const validateString = (val: string) => {
-    //checks if string contains numbers or special chars
-    const matches = val.match(/\d|[$&\\+,:;=?@#|'<>.^*()%!-]/g);
-    if (matches !== null) return false;
-    return true;
-  };
-
-  const nameValid = !!fullname && validateString(fullname);
+  const nameValid = isValidFullName(fullname ?? '');
   const nameChanged = (fullname ?? '') !== (full_name ?? '');
   const avatarChanged =
     selectedFile !== null ||
@@ -264,7 +279,7 @@ export default function AccountForm({
             </Field>
             <Field
               label="Full name"
-              invalid={!fullname || !validateString(fullname)}
+              invalid={!isValidFullName(fullname ?? '')}
               errorText="Please use letters only."
             >
               <Input

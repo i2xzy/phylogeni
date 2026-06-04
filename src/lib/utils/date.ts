@@ -3,20 +3,26 @@
 // same for everyone and can't be misread as American month/day order.
 const LOCALE = 'en-GB';
 
-// e.g. "3 June 2026"
-export const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString(LOCALE, {
+// e.g. "3 June 2026". Returns '' for empty/invalid input.
+export const formatDate = (iso: string) => {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(LOCALE, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
+};
 
-// e.g. "3 June 2026, 14:30"
-export const formatDateTime = (iso: string) =>
-  new Date(iso).toLocaleString(LOCALE, {
+// e.g. "3 June 2026, 14:30". Returns '' for empty/invalid input.
+export const formatDateTime = (iso: string) => {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleString(LOCALE, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   });
+};

@@ -3,16 +3,13 @@
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '~/lib/utils/supabase/server';
+import { hasDisallowedNameChars } from '~/lib/utils/name';
 
 export type SaveProfileInput = {
   fullName: string;
   // Already-renderable URL: a provider photo, our storage public URL, or ''.
   avatarUrl: string;
 };
-
-// Mirrors the client-side hint: names are letters only (no digits/punctuation).
-const hasDisallowedChars = (value: string) =>
-  /\d|[$&\\+,:;=?@#|'<>.^*()%!-]/.test(value);
 
 export async function saveProfile(
   input: SaveProfileInput
@@ -26,7 +23,7 @@ export async function saveProfile(
 
   const fullName = input.fullName.trim();
   if (!fullName) return { error: 'Full name is required.' };
-  if (hasDisallowedChars(fullName))
+  if (hasDisallowedNameChars(fullName))
     return { error: 'Please use letters only.' };
 
   const avatarUrl = input.avatarUrl.trim();
