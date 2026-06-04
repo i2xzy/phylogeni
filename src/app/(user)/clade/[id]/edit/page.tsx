@@ -28,23 +28,32 @@ export default async function CladeEditPage({
   }
 
   // Ancestors (for the current parent name + "move up" suggestions) and direct
-  // children (which can't be the new parent) come from the same RPC.
-  const lineage: SelectedClade[] = clade.lineage.map((a) => ({
-    id: Number(a.id),
-    name: a.name,
-  }));
+  // children (which can't be the new parent) come from the same RPC. Index
+  // ancestors by id so we can walk the parent chain regardless of RPC order.
+  const ancestorById = new Map(clade.lineage.map((a) => [Number(a.id), a]));
 
   const parentName =
     clade.parent_id != null
-      ? lineage.find((a) => a.id === clade.parent_id)?.name ?? null
+      ? ancestorById.get(clade.parent_id)?.name ?? null
       : null;
 
   // Suggest sensible new parents up front: recently-added siblings first (a
   // common flow is creating a new sibling, then moving this clade into it),
-  // then ancestors above the current parent (moving up the tree).
-  const ancestors = lineage.filter(
-    (a) => a.id !== clade.id && a.id !== clade.parent_id
-  );
+  // then the nearest ancestors *above* the current parent (moving up the tree),
+  // capped at 5 so deep lineages don't flood the list.
+  const ancestors: SelectedClade[] = [];
+  let cursorId =
+    clade.parent_id != null
+      ? ancestorById.get(clade.parent_id)?.parent_id ?? null
+      : null;
+  let guard = 0;
+  while (cursorId != null && ancestors.length < 5 && guard < 100) {
+    const node = ancestorById.get(cursorId);
+    if (!node) break;
+    ancestors.push({ id: Number(node.id), name: node.name });
+    cursorId = node.parent_id;
+    guard += 1;
+  }
 
   let siblings: SelectedClade[] = [];
   if (clade.parent_id != null) {
