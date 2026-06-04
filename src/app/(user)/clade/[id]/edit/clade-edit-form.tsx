@@ -11,10 +11,13 @@ import {
   Heading,
   Input,
   Stack,
+  Text,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState, useTransition } from 'react';
 import { LuPlus } from 'react-icons/lu';
+import useSWR from 'swr';
+import { useDebounce } from 'use-debounce';
 
 import { Clade } from '~/types/database';
 import { Field } from '~/components/ui/field';
@@ -27,8 +30,9 @@ import {
   SelectTrigger,
   SelectValueText,
 } from '~/components/ui/select';
+import { postFetcher } from '~/lib/utils/swr/fetchers';
 
-import { updateClade } from './actions';
+import { moveClade, updateClade } from './actions';
 
 const ranks = createListCollection({
   items: [
@@ -71,9 +75,23 @@ const ComingSoonCard = ({
   </Card.Root>
 );
 
-export default function CladeEditForm({ clade }: { clade: Clade }) {
+type ParentResult = {
+  id: number;
+  name: string;
+  extant: boolean | null;
+  rank: string | null;
+};
+
+export default function CladeEditForm({
+  clade,
+  parentName,
+}: {
+  clade: Clade;
+  parentName: string | null;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isMoving, startMoveTransition] = useTransition();
 
   const [name, setName] = useState(clade.name);
   const [commonNames, setCommonNames] = useState(
@@ -89,6 +107,47 @@ export default function CladeEditForm({ clade }: { clade: Clade }) {
     extant: clade.extant,
     common_names: clade.common_names ?? [],
   });
+
+  // Parent picker (a move is a distinct revision, so it has its own control).
+  const [parentQuery, setParentQuery] = useState('');
+  const [debouncedParentQuery] = useDebounce(parentQuery, 250);
+  const [selectedParent, setSelectedParent] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+
+  const { data: parentResults, isLoading: parentLoading } = useSWR<
+    ParentResult[]
+  >(
+    debouncedParentQuery
+      ? ['/api/search', { query: debouncedParentQuery }]
+      : null,
+    postFetcher
+  );
+  // Can't be its own parent; descendants are rejected server-side.
+  const parentOptions = (parentResults ?? []).filter((r) => r.id !== clade.id);
+
+  const move = () => {
+    if (!selectedParent || selectedParent.id === clade.parent_id) return;
+    startMoveTransition(async () => {
+      const result = await moveClade({
+        id: clade.id,
+        newParentId: selectedParent.id,
+      });
+      if (result?.error) {
+        toaster.create({
+          title: 'Could not move clade',
+          description: result.error,
+          type: 'error',
+        });
+        return;
+      }
+      toaster.create({ title: 'Clade moved', type: 'success' });
+      setSelectedParent(null);
+      setParentQuery('');
+      router.refresh();
+    });
+  };
 
   const parsedCommonNames = commonNames
     .split(',')
@@ -208,14 +267,81 @@ export default function CladeEditForm({ clade }: { clade: Clade }) {
           </Card.Body>
         </Card.Root>
 
-        <ComingSoonCard
-          title="Parent"
-          helper="Moving this clade to a different parent is coming soon."
-        >
-          <Field label="Parent clade">
-            <Input placeholder="Search for a new parent…" />
-          </Field>
-        </ComingSoonCard>
+        <Card.Root>
+          <Card.Header>
+            <Heading size="md">Parent</Heading>
+            <Card.Description>
+              {clade.parent_id == null
+                ? 'This is a root clade with no parent.'
+                : `Currently a child of ${parentName ?? `clade ${clade.parent_id}`}.`}
+            </Card.Description>
+          </Card.Header>
+          <Card.Body>
+            <Stack gap={3}>
+              <Field
+                label="Move to a new parent"
+                helperText="Search for the clade that should become the parent."
+              >
+                <Input
+                  placeholder="Search for a clade…"
+                  value={selectedParent ? selectedParent.name : parentQuery}
+                  onChange={(e) => {
+                    setSelectedParent(null);
+                    setParentQuery(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    // Don't submit the details form when searching here.
+                    if (e.key === 'Enter') e.preventDefault();
+                  }}
+                />
+              </Field>
+
+              {!selectedParent && debouncedParentQuery && (
+                <Stack gap={1} maxH="3xs" overflowY="auto">
+                  {parentLoading && parentOptions.length === 0 && (
+                    <Text fontSize="sm" color="fg.muted">
+                      Searching…
+                    </Text>
+                  )}
+                  {!parentLoading && parentOptions.length === 0 && (
+                    <Text fontSize="sm" color="fg.muted">
+                      No clades found.
+                    </Text>
+                  )}
+                  {parentOptions.map((option) => (
+                    <Button
+                      key={option.id}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      justifyContent="flex-start"
+                      onClick={() => {
+                        setSelectedParent({ id: option.id, name: option.name });
+                        setParentQuery('');
+                      }}
+                    >
+                      {option.extant === false ? '† ' : ''}
+                      {option.name}
+                      {option.rank ? ` · ${option.rank}` : ''}
+                    </Button>
+                  ))}
+                </Stack>
+              )}
+
+              <Button
+                type="button"
+                alignSelf="flex-start"
+                loading={isMoving}
+                disabled={
+                  !selectedParent || selectedParent.id === clade.parent_id
+                }
+                onClick={move}
+              >
+                Move clade
+              </Button>
+            </Stack>
+          </Card.Body>
+        </Card.Root>
 
         <ComingSoonCard
           title="External sources & links"

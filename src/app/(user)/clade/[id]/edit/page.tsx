@@ -43,6 +43,16 @@ export default async function CladeEditPage({
     return null;
   }
 
+  let parentName: string | null = null;
+  if (clade.parent_id != null) {
+    const { data: parent } = await supabase
+      .from('taxa')
+      .select('name')
+      .eq('id', clade.parent_id)
+      .maybeSingle();
+    parentName = parent?.name ?? null;
+  }
+
   return (
     <Container display="flex" gap="10" maxW="8xl">
       <Stack
@@ -62,7 +72,7 @@ export default async function CladeEditPage({
           </BreadcrumbRoot>
           <Heading size="lg">Editing {clade.name}</Heading>
         </Stack>
-        <CladeEditForm clade={clade} />
+        <CladeEditForm clade={clade} parentName={parentName} />
       </Stack>
     </Container>
   );
