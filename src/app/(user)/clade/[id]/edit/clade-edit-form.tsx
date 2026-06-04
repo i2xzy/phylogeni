@@ -356,7 +356,6 @@ export default function CladeEditForm({
 
                 <Button
                   type="button"
-                  variant="outline"
                   size="sm"
                   onClick={() => router.push(`/clade/add?parent=${clade.id}`)}
                 >
