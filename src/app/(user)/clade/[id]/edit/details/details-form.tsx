@@ -169,7 +169,11 @@ export default function DetailsForm({ clade }: { clade: Clade }) {
         </Card.Root>
 
         <ButtonGroup alignSelf="flex-end">
-          <Button type="button" variant="ghost" onClick={() => router.back()}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => router.push(`/clade/${clade.id}`)}
+          >
             Cancel
           </Button>
           <Button type="submit" variant="outline" loading={isPending}>
