@@ -55,7 +55,12 @@ export const SelectContent = React.forwardRef<
   return (
     <Portal disabled={!portalled} container={portalRef}>
       <ChakraSelect.Positioner>
-        <ChakraSelect.Content {...rest} ref={ref} />
+        <ChakraSelect.Content
+          maxH="16rem"
+          overflowY="auto"
+          {...rest}
+          ref={ref}
+        />
       </ChakraSelect.Positioner>
     </Portal>
   );
