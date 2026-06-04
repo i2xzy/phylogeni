@@ -149,28 +149,40 @@ export const rankIndex = (
   code: NomenclatureCode | null = null
 ) => (code ? RANK_VALUES_BY_CODE[code] : RANK_VALUES).indexOf(value);
 
-// Marker clades whose presence in a lineage fixes the nomenclatural code.
-const ZOOLOGICAL_ROOTS = ['animalia', 'metazoa'];
-const BOTANICAL_ROOTS = [
+// Clades governed by the ICN (algae, fungi, plants) use botanical ranks;
+// everything else (animals, bacteria, protists, ...) defaults to zoological.
+// Matched case-insensitively against any name in a clade's lineage. Algae are
+// scattered across the tree, so extend this list as the tree is seeded.
+export const ICN_GOVERNED_CLADES = [
+  // Plants + green algae
+  'archaeplastida',
   'plantae',
   'viridiplantae',
-  'archaeplastida',
   'chloroplastida',
+  'embryophyta',
+  'chlorophyta',
+  // Red algae, glaucophytes
+  'rhodophyta',
+  'glaucophyta',
+  // Fungi
   'fungi',
-  'chromista',
+  // Photosynthetic stramenopiles (brown algae, diatoms)
+  'ochrophyta',
+  'phaeophyceae',
+  'bacillariophyta',
 ];
 
-// Derive the code from a lineage (any of the clade's own + ancestor names).
-// Returns null when no marker is found (e.g. above kingdom, or unseeded data).
+// Derive the nomenclatural code from a lineage (the clade's own + ancestor
+// names): botanical if it passes through an ICN-governed clade, else zoological.
 export const codeForLineageNames = (
   names: (string | null | undefined)[]
-): NomenclatureCode | null => {
+): NomenclatureCode => {
   const lower = names
     .filter((n): n is string => Boolean(n))
     .map((n) => n.toLowerCase());
-  if (lower.some((n) => ZOOLOGICAL_ROOTS.includes(n))) return 'zoological';
-  if (lower.some((n) => BOTANICAL_ROOTS.includes(n))) return 'botanical';
-  return null;
+  return lower.some((n) => ICN_GOVERNED_CLADES.includes(n))
+    ? 'botanical'
+    : 'zoological';
 };
 
 // The principal ranks, e.g. for filtering external (OTT) search results.
