@@ -120,13 +120,14 @@ export default function CladeEditForm({
     null
   );
 
-  // The current Wikidata cover image (same source as the clade page), fetched
-  // client-side so it doesn't block the edit page render.
-  const { data: cladeImage } = useSWR<{ image?: string }>(
+  // Wikidata image candidates (same source as the clade page), fetched
+  // client-side so it doesn't block the edit page render. The first is the one
+  // currently used as the cover.
+  const { data: cladeImage } = useSWR<{ images?: string[] }>(
     `/api/clade/${clade.id}`,
     fetcher
   );
-  const currentImage = cladeImage?.image;
+  const imageCandidates = cladeImage?.images ?? [];
 
   const move = () => {
     if (!selectedParent || selectedParent.id === clade.parent_id) return;
@@ -394,7 +395,10 @@ export default function CladeEditForm({
               matches.
             </Text>
             <SimpleGrid columns={{ base: 3, sm: 5 }} gap={3}>
-              {Array.from({ length: 5 }).map((_, i) => (
+              {(imageCandidates.length
+                ? imageCandidates.slice(0, 5)
+                : Array.from({ length: 5 }, () => null)
+              ).map((url, i) => (
                 <AspectRatio key={i} ratio={1}>
                   <Center
                     position="relative"
@@ -405,9 +409,9 @@ export default function CladeEditForm({
                     bg="bg.muted"
                     color="fg.subtle"
                   >
-                    {i === 0 && currentImage ? (
+                    {url ? (
                       <Image
-                        src={currentImage}
+                        src={url}
                         alt={clade.name}
                         objectFit="cover"
                         w="full"
