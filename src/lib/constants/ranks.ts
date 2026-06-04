@@ -149,37 +149,19 @@ export const rankIndex = (
   code: NomenclatureCode | null = null
 ) => (code ? RANK_VALUES_BY_CODE[code] : RANK_VALUES).indexOf(value);
 
-// Clades governed by the ICN (algae, fungi, plants) use botanical ranks;
-// everything else (animals, bacteria, protists, ...) defaults to zoological.
-// Matched case-insensitively against any name in a clade's lineage. Algae are
-// scattered across the tree, so extend this list as the tree is seeded.
+// Clades governed by the ICN (algae, fungi, plants) use botanical ranks.
+// Matched case-insensitively against any name in a clade's lineage, so a
+// high-level clade covers all its descendants. Extend as the tree is seeded
+// (some algae — cryptophytes, haptophytes, dinoflagellates — are scattered).
 export const ICN_GOVERNED_CLADES = [
-  // Plants + green algae
-  'archaeplastida',
-  'plantae',
-  'viridiplantae',
-  'chloroplastida',
-  'embryophyta',
-  'chlorophyta',
-  // Red algae, glaucophytes
-  'rhodophyta',
-  'glaucophyta',
-  // Fungi
+  'archaeplastida', // plants + green/red algae + glaucophytes
+  'ochrophyta', // brown algae, diatoms (photosynthetic stramenopiles)
   'fungi',
-  // Photosynthetic stramenopiles (brown algae, diatoms)
-  'ochrophyta',
-  'phaeophyceae',
-  'bacillariophyta',
 ];
 
-// Clades where only zoological ranks make sense (animals + groups that never
-// use botanical ranks). Used to resolve the otherwise-ambiguous default.
-export const ZOOLOGICAL_SAFE_CLADES = [
-  'animalia',
-  'metazoa',
-  'bacteria',
-  'archaea',
-];
+// Clades where only zoological ranks make sense. Excludes Archaea on purpose:
+// a future two-domain system could nest eukaryotes (incl. plants) within it.
+export const ZOOLOGICAL_SAFE_CLADES = ['animalia', 'metazoa', 'eubacteria'];
 
 // Derive the nomenclatural code from a lineage (the clade's own + ancestor
 // names): botanical under an ICN-governed clade, zoological under a
