@@ -9,6 +9,7 @@ import { TbBinaryTree } from 'react-icons/tb';
 
 import { fetcher } from '~/lib/utils/swr/fetchers';
 import { formatDate } from '~/lib/utils/date';
+import { rankLabel } from '~/lib/constants/ranks';
 import { EmptyState } from '~/components/ui/empty-state';
 import { CloseButton } from '~/components/ui/close-button';
 import SidebarButton from '~/lib/components/CladeSidebar/SidebarButton';
@@ -108,7 +109,7 @@ export default function Sidebar({ nodeId, onClose }: Props) {
               <Text as="h3" fontSize="sm" fontWeight="bold">
                 Rank
               </Text>
-              <Text>{data.rank}</Text>
+              <Text>{rankLabel(data.rank)}</Text>
             </>
           )}
         </Stack>

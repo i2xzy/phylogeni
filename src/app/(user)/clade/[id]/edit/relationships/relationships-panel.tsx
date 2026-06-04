@@ -9,6 +9,7 @@ import { Clade, ChildNode } from '~/types/database';
 import { Field } from '~/components/ui/field';
 import { TextLink } from '~/components/ui/text-link';
 import { toaster } from '~/components/ui/toaster';
+import { rankLabel } from '~/lib/constants/ranks';
 
 import CladeSearchSelect, {
   type SelectedClade,
@@ -110,7 +111,7 @@ export default function RelationshipsPanel({
                   <TextLink key={child.id} href={`/clade/${child.id}`}>
                     {child.extant === false ? '† ' : ''}
                     {child.name}
-                    {child.rank ? ` · ${child.rank}` : ''}
+                    {child.rank ? ` · ${rankLabel(child.rank)}` : ''}
                   </TextLink>
                 ))}
               </Stack>

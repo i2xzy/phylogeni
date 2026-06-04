@@ -6,6 +6,7 @@ import { useDebounce } from 'use-debounce';
 import { Box, Button, Input, Stack, Text } from '@chakra-ui/react';
 
 import { postFetcher } from '~/lib/utils/swr/fetchers';
+import { rankLabel } from '~/lib/constants/ranks';
 
 type CladeResult = {
   id: number;
@@ -105,7 +106,7 @@ export default function CladeSearchSelect({
                 <CladeOption
                   key={option.id}
                   label={`${option.extant === false ? '† ' : ''}${option.name}${
-                    option.rank ? ` · ${option.rank}` : ''
+                    option.rank ? ` · ${rankLabel(option.rank)}` : ''
                   }`}
                   onPick={() => pick({ id: option.id, name: option.name })}
                 />

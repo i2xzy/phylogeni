@@ -17,6 +17,7 @@ import {
   RevisionWithUser,
 } from '~/types/database';
 import { formatDateTime } from '~/lib/utils/date';
+import { rankLabel } from '~/lib/constants/ranks';
 
 type FieldKey = 'name' | 'rank' | 'extant' | 'common_names';
 
@@ -38,6 +39,7 @@ const format = (key: FieldKey, value: unknown): string => {
   }
   if (Array.isArray(value)) return value.length ? value.join(', ') : '—';
   if (value == null || value === '') return '—';
+  if (key === 'rank' && typeof value === 'string') return rankLabel(value);
   return String(value);
 };
 

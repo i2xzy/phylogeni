@@ -21,6 +21,7 @@ import {
 } from '~/components/ui/breadcrumb';
 import { DataListItem, DataListRoot } from '~/components/ui/data-list';
 import { TextLink } from '~/components/ui/text-link';
+import { rankLabel } from '~/lib/constants/ranks';
 
 import getCladeById from './getCladeById';
 import InfoBox from './infobox';
@@ -107,7 +108,10 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
           </Stack>
           <DataListRoot orientation="horizontal" gap="2">
             <DataListItem label="Name" value={data.name} />
-            <DataListItem label="Rank" value={data.rank ?? '—'} />
+            <DataListItem
+              label="Rank"
+              value={data.rank ? rankLabel(data.rank) : '—'}
+            />
             <DataListItem
               label="Status"
               value={data.extant ? 'Extant' : 'Extinct'}

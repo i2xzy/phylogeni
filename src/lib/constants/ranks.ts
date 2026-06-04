@@ -53,6 +53,13 @@ export const RANK_VALUES = RANKS.map((r) => r.value);
 // UI option representing "no rank" — stored as null, never as a string.
 export const NO_RANK = 'No rank';
 
+const RANK_LABELS = new Map(RANKS.map((r) => [r.value, r.label]));
+
+// Display label for a stored (lowercase) rank value. Falls back to
+// capitalising unknown values (e.g. legacy/imported ranks not in the list).
+export const rankLabel = (value: string) =>
+  RANK_LABELS.get(value) ?? value.charAt(0).toUpperCase() + value.slice(1);
+
 export const isValidRank = (value: string) => RANK_VALUES.includes(value);
 
 // Position in the hierarchy: 0 = broadest, higher = finer. -1 if unknown.

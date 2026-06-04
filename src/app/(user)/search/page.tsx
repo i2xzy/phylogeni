@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { matchName } from '~/lib/utils/ott';
 import getCladesByName from '~/lib/utils/supabase/queries/getCladesByName';
+import { rankLabel } from '~/lib/constants/ranks';
 
 import Search from './search';
 
@@ -52,7 +53,9 @@ const Page = async ({ searchParams }: PageProps<'/search'>) => {
                   <Heading size="md">
                     {item.extant ? '🌱' : '🦕'} {item.name}
                   </Heading>
-                  <Text color="GrayText">{item.rank}</Text>
+                  <Text color="GrayText">
+                    {item.rank ? rankLabel(item.rank) : ''}
+                  </Text>
                 </Card.Body>
               </Card.Root>
             </Link>
