@@ -260,7 +260,7 @@ export default function AccountForm({
               justify={{ base: 'center', sm: 'flex-start' }}
             >
               <FileUploadRoot
-                accept={'image/*'}
+                accept={ALLOWED_AVATAR_TYPES.join(',')}
                 onFileChange={(details) => {
                   const file = details.acceptedFiles[0];
                   if (file) selectImage(file);
