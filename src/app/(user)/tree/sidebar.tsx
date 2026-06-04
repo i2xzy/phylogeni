@@ -89,7 +89,7 @@ export default function Sidebar({ nodeId, onClose }: Props) {
             <SidebarButton text="Edit" href={`/clade/${data.id}/edit`}>
               <RiEdit2Fill />
             </SidebarButton>
-            <SidebarButton text="Add" href={'/clade/add'}>
+            <SidebarButton text="Add" href={`/clade/add?parent=${data.id}`}>
               <RiAddLargeFill />
             </SidebarButton>
           </Flex>

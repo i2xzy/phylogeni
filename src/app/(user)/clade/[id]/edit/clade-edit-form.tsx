@@ -11,13 +11,10 @@ import {
   Heading,
   Input,
   Stack,
-  Text,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState, useTransition } from 'react';
 import { LuPlus } from 'react-icons/lu';
-import useSWR from 'swr';
-import { useDebounce } from 'use-debounce';
 
 import { Clade } from '~/types/database';
 import { Field } from '~/components/ui/field';
@@ -30,8 +27,10 @@ import {
   SelectTrigger,
   SelectValueText,
 } from '~/components/ui/select';
-import { postFetcher } from '~/lib/utils/swr/fetchers';
 
+import CladeSearchSelect, {
+  type SelectedClade,
+} from '../../clade-search-select';
 import { moveClade, updateClade } from './actions';
 
 const ranks = createListCollection({
@@ -75,13 +74,6 @@ const ComingSoonCard = ({
   </Card.Root>
 );
 
-type ParentResult = {
-  id: number;
-  name: string;
-  extant: boolean | null;
-  rank: string | null;
-};
-
 export default function CladeEditForm({
   clade,
   parentName,
@@ -109,23 +101,9 @@ export default function CladeEditForm({
   });
 
   // Parent picker (a move is a distinct revision, so it has its own control).
-  const [parentQuery, setParentQuery] = useState('');
-  const [debouncedParentQuery] = useDebounce(parentQuery, 250);
-  const [selectedParent, setSelectedParent] = useState<{
-    id: number;
-    name: string;
-  } | null>(null);
-
-  const { data: parentResults, isLoading: parentLoading } = useSWR<
-    ParentResult[]
-  >(
-    debouncedParentQuery
-      ? ['/api/search', { query: debouncedParentQuery }]
-      : null,
-    postFetcher
+  const [selectedParent, setSelectedParent] = useState<SelectedClade | null>(
+    null
   );
-  // Can't be its own parent; descendants are rejected server-side.
-  const parentOptions = (parentResults ?? []).filter((r) => r.id !== clade.id);
 
   const move = () => {
     if (!selectedParent || selectedParent.id === clade.parent_id) return;
@@ -144,7 +122,6 @@ export default function CladeEditForm({
       }
       toaster.create({ title: 'Clade moved', type: 'success' });
       setSelectedParent(null);
-      setParentQuery('');
       router.refresh();
     });
   };
@@ -282,51 +259,12 @@ export default function CladeEditForm({
                 label="Move to a new parent"
                 helperText="Search for the clade that should become the parent."
               >
-                <Input
-                  placeholder="Search for a clade…"
-                  value={selectedParent ? selectedParent.name : parentQuery}
-                  onChange={(e) => {
-                    setSelectedParent(null);
-                    setParentQuery(e.target.value);
-                  }}
-                  onKeyDown={(e) => {
-                    // Don't submit the details form when searching here.
-                    if (e.key === 'Enter') e.preventDefault();
-                  }}
+                <CladeSearchSelect
+                  value={selectedParent}
+                  onChange={setSelectedParent}
+                  excludeId={clade.id}
                 />
               </Field>
-
-              {!selectedParent && debouncedParentQuery && (
-                <Stack gap={1} maxH="3xs" overflowY="auto">
-                  {parentLoading && parentOptions.length === 0 && (
-                    <Text fontSize="sm" color="fg.muted">
-                      Searching…
-                    </Text>
-                  )}
-                  {!parentLoading && parentOptions.length === 0 && (
-                    <Text fontSize="sm" color="fg.muted">
-                      No clades found.
-                    </Text>
-                  )}
-                  {parentOptions.map((option) => (
-                    <Button
-                      key={option.id}
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      justifyContent="flex-start"
-                      onClick={() => {
-                        setSelectedParent({ id: option.id, name: option.name });
-                        setParentQuery('');
-                      }}
-                    >
-                      {option.extant === false ? '† ' : ''}
-                      {option.name}
-                      {option.rank ? ` · ${option.rank}` : ''}
-                    </Button>
-                  ))}
-                </Stack>
-              )}
 
               <Button
                 type="button"
