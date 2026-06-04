@@ -108,10 +108,9 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
           </Stack>
           <DataListRoot orientation="horizontal" gap="2">
             <DataListItem label="Name" value={data.name} />
-            <DataListItem
-              label="Rank"
-              value={data.rank ? rankLabel(data.rank) : '—'}
-            />
+            {data.rank && (
+              <DataListItem label="Rank" value={rankLabel(data.rank)} />
+            )}
             <DataListItem
               label="Status"
               value={data.extant ? 'Extant' : 'Extinct'}

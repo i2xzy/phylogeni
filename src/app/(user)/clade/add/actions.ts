@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '~/lib/utils/supabase/server';
-import { NO_RANK, isValidRank } from '~/lib/constants/ranks';
+import { isValidRank } from '~/lib/constants/ranks';
 
 const EDIT_ROLES = ['editor', 'curator', 'admin'];
 
@@ -44,7 +44,7 @@ export async function createClade(
     .maybeSingle();
   if (!parent) return { error: 'Parent clade not found.' };
 
-  const rank = input.rank && input.rank !== NO_RANK ? input.rank : null;
+  const rank = input.rank || null;
   if (rank !== null && !isValidRank(rank)) {
     return { error: 'Invalid rank.' };
   }

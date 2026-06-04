@@ -22,13 +22,11 @@ import {
 } from '~/components/ui/select';
 import type { OttNodeDetails } from '~/types/ott';
 import type { ChildNode, LineageNode, CladeDetails } from '~/types/database';
-import { RANKS, NO_RANK } from '~/lib/constants/ranks';
+import { RANKS } from '~/lib/constants/ranks';
 
 import ResultCard from './ResultCard';
 
-const ranks = createListCollection({
-  items: [{ value: NO_RANK, label: NO_RANK }, ...RANKS],
-});
+const ranks = createListCollection({ items: RANKS });
 
 const sources = createListCollection({
   items: [

@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { createClient } from '~/lib/utils/supabase/server';
 import { Clade, CladeSnapshot } from '~/types/database';
-import { NO_RANK, isValidRank } from '~/lib/constants/ranks';
+import { isValidRank } from '~/lib/constants/ranks';
 
 const EDIT_ROLES = ['editor', 'curator', 'admin'];
 
@@ -59,7 +59,7 @@ export async function updateClade(
     .maybeSingle();
   if (!before) return { error: 'Clade not found.' };
 
-  const rank = input.rank && input.rank !== NO_RANK ? input.rank : null;
+  const rank = input.rank || null;
   if (rank !== null && !isValidRank(rank)) {
     return { error: 'Invalid rank.' };
   }

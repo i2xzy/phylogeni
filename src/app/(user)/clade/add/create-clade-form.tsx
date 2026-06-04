@@ -14,7 +14,7 @@ import { useState, useTransition } from 'react';
 import { Field } from '~/components/ui/field';
 import { toaster } from '~/components/ui/toaster';
 import { Radio, RadioGroup } from '~/components/ui/radio';
-import { NO_RANK, type NomenclatureCode } from '~/lib/constants/ranks';
+import { type NomenclatureCode } from '~/lib/constants/ranks';
 
 import CladeSearchSelect, { type SelectedClade } from '../clade-search-select';
 import RankSelect from '../rank-select';
@@ -32,7 +32,7 @@ export default function CreateCladeForm({
 
   const [name, setName] = useState('');
   const [commonNames, setCommonNames] = useState('');
-  const [rank, setRank] = useState(NO_RANK);
+  const [rank, setRank] = useState<string | null>(null);
   const [extant, setExtant] = useState<boolean | null>(null);
   const [parent, setParent] = useState<SelectedClade | null>(initialParent);
 

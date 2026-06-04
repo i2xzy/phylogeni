@@ -11,9 +11,15 @@ export type Rank = { value: string; label: string };
 
 export type NomenclatureCode = 'zoological' | 'botanical';
 
+// An explicitly unranked clade: selectable and saved like any rank, but with no
+// position in the Linnaean hierarchy (excluded from rank-ordering checks). A
+// null rank means "not set" and is simply not displayed.
+export const CLADE = 'clade';
+
 // Every rank across all codes, with its display label. Used for labels,
 // validation, and as the fallback list when a clade's code is unknown.
 export const RANKS: Rank[] = [
+  { value: CLADE, label: 'Clade' },
   { value: 'domain', label: 'Domain' },
   { value: 'superkingdom', label: 'Superkingdom' },
   { value: 'kingdom', label: 'Kingdom' },
@@ -124,9 +130,6 @@ const RANK_VALUES_BY_CODE: Record<NomenclatureCode, string[]> = {
   botanical: BOTANICAL_RANK_VALUES,
 };
 
-// UI option representing "no rank" — stored as null, never as a string.
-export const NO_RANK = 'No rank';
-
 const RANK_LABELS = new Map(RANKS.map((r) => [r.value, r.label]));
 
 // Display label for a stored (lowercase) rank value. Falls back to
@@ -136,18 +139,28 @@ export const rankLabel = (value: string) =>
 
 export const isValidRank = (value: string) => RANK_VALUES.includes(value);
 
-// The ranks to offer for a clade, given its code. Unknown code -> all ranks.
+// The ranks to offer for a clade, given its code (Clade first). Unknown code
+// -> all ranks.
 export const ranksForCode = (code: NomenclatureCode | null): Rank[] => {
-  const values = code ? RANK_VALUES_BY_CODE[code] : RANK_VALUES;
-  return values.map((value) => ({ value, label: rankLabel(value) }));
+  if (!code) return RANKS; // already lists Clade first, then every rank
+  return [
+    { value: CLADE, label: rankLabel(CLADE) },
+    ...RANK_VALUES_BY_CODE[code].map((value) => ({
+      value,
+      label: rankLabel(value),
+    })),
+  ];
 };
 
 // Position in the hierarchy (0 = broadest), within a code's ordering or the
-// full list. -1 if the rank isn't part of that ordering.
+// full list. -1 for an unranked clade or a rank outside that ordering.
 export const rankIndex = (
   value: string,
   code: NomenclatureCode | null = null
-) => (code ? RANK_VALUES_BY_CODE[code] : RANK_VALUES).indexOf(value);
+) => {
+  if (value === CLADE) return -1;
+  return (code ? RANK_VALUES_BY_CODE[code] : RANK_VALUES).indexOf(value);
+};
 
 // Clades governed by the ICN (algae, fungi, plants) use botanical ranks.
 // Matched case-insensitively against any name in a clade's lineage, so a

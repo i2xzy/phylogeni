@@ -15,7 +15,7 @@ import { Clade } from '~/types/database';
 import { Field } from '~/components/ui/field';
 import { toaster } from '~/components/ui/toaster';
 import { Radio, RadioGroup } from '~/components/ui/radio';
-import { NO_RANK, type NomenclatureCode } from '~/lib/constants/ranks';
+import { type NomenclatureCode } from '~/lib/constants/ranks';
 
 import RankSelect from '../../../rank-select';
 import { updateClade } from '../actions';
@@ -34,13 +34,13 @@ export default function DetailsForm({
   const [commonNames, setCommonNames] = useState(
     (clade.common_names ?? []).join(', ')
   );
-  const [rank, setRank] = useState(clade.rank ?? NO_RANK);
+  const [rank, setRank] = useState<string | null>(clade.rank);
   const [extant, setExtant] = useState<boolean | null>(clade.extant);
 
   // Baseline of the last-saved values, used to detect unsaved changes.
   const [saved, setSaved] = useState({
     name: clade.name,
-    rank: clade.rank ?? NO_RANK,
+    rank: clade.rank,
     extant: clade.extant,
     common_names: clade.common_names ?? [],
   });

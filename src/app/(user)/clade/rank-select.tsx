@@ -11,38 +11,29 @@ import {
   SelectValueText,
 } from '~/components/ui/select';
 import { SegmentedControl } from '~/components/ui/segmented-control';
-import {
-  ranksForCode,
-  NO_RANK,
-  type NomenclatureCode,
-} from '~/lib/constants/ranks';
+import { ranksForCode, type NomenclatureCode } from '~/lib/constants/ranks';
 
 const ALL = 'all';
 
 // Rank dropdown whose options follow the clade's nomenclatural code. When the
 // code is ambiguous (null — neither ICN-governed nor zoological-safe), all
 // ranks show and a toggle lets the user narrow to zoological or botanical.
+// A null value means the rank isn't set; clearing the select returns to null.
 export default function RankSelect({
   code,
   value,
   onChange,
 }: {
   code: NomenclatureCode | null;
-  value: string;
-  onChange: (value: string) => void;
+  value: string | null;
+  onChange: (value: string | null) => void;
 }) {
   const [override, setOverride] = useState<string>(ALL);
   const effectiveCode =
     code ?? (override === ALL ? null : (override as NomenclatureCode));
 
   const ranks = useMemo(
-    () =>
-      createListCollection({
-        items: [
-          { value: NO_RANK, label: NO_RANK },
-          ...ranksForCode(effectiveCode),
-        ],
-      }),
+    () => createListCollection({ items: ranksForCode(effectiveCode) }),
     [effectiveCode]
   );
 
@@ -64,10 +55,10 @@ export default function RankSelect({
       <SelectRoot
         width="full"
         collection={ranks}
-        value={[value]}
-        onValueChange={(e) => onChange(e.value[0])}
+        value={value ? [value] : []}
+        onValueChange={(e) => onChange(e.value[0] ?? null)}
       >
-        <SelectTrigger>
+        <SelectTrigger clearable>
           <SelectValueText placeholder="Select rank" />
         </SelectTrigger>
         <SelectContent>
