@@ -67,7 +67,7 @@ export default function RelationshipsPanel({
           </Card.Description>
         </Card.Header>
         <Card.Body>
-          <Stack gap={6}>
+          <Stack gap={4}>
             <Field
               label="Move to a new parent"
               helperText="Search for the clade that should become the parent. The move applies immediately."
