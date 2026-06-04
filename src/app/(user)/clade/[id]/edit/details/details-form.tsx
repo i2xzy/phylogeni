@@ -4,31 +4,20 @@ import {
   Button,
   ButtonGroup,
   Card,
-  createListCollection,
   Heading,
   Input,
   Stack,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 
 import { Clade } from '~/types/database';
 import { Field } from '~/components/ui/field';
 import { toaster } from '~/components/ui/toaster';
 import { Radio, RadioGroup } from '~/components/ui/radio';
-import {
-  SelectRoot,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValueText,
-} from '~/components/ui/select';
-import {
-  ranksForCode,
-  NO_RANK,
-  type NomenclatureCode,
-} from '~/lib/constants/ranks';
+import { NO_RANK, type NomenclatureCode } from '~/lib/constants/ranks';
 
+import RankSelect from '../../../rank-select';
 import { updateClade } from '../actions';
 
 export default function DetailsForm({
@@ -40,15 +29,6 @@ export default function DetailsForm({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-
-  // Rank options follow the clade's nomenclatural code (zoology/botany).
-  const ranks = useMemo(
-    () =>
-      createListCollection({
-        items: [{ value: NO_RANK, label: NO_RANK }, ...ranksForCode(code)],
-      }),
-    [code]
-  );
 
   const [name, setName] = useState(clade.name);
   const [commonNames, setCommonNames] = useState(
@@ -146,22 +126,7 @@ export default function DetailsForm({
               </Field>
 
               <Field label="Rank">
-                <SelectRoot
-                  collection={ranks}
-                  value={[rank]}
-                  onValueChange={(e) => setRank(e.value[0])}
-                >
-                  <SelectTrigger>
-                    <SelectValueText placeholder="Select rank" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ranks.items.map((item) => (
-                      <SelectItem item={item} key={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </SelectRoot>
+                <RankSelect code={code} value={rank} onChange={setRank} />
               </Field>
 
               <Field label="Status">

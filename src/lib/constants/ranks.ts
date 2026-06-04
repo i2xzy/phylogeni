@@ -172,17 +172,28 @@ export const ICN_GOVERNED_CLADES = [
   'bacillariophyta',
 ];
 
+// Clades where only zoological ranks make sense (animals + groups that never
+// use botanical ranks). Used to resolve the otherwise-ambiguous default.
+export const ZOOLOGICAL_SAFE_CLADES = [
+  'animalia',
+  'metazoa',
+  'bacteria',
+  'archaea',
+];
+
 // Derive the nomenclatural code from a lineage (the clade's own + ancestor
-// names): botanical if it passes through an ICN-governed clade, else zoological.
+// names): botanical under an ICN-governed clade, zoological under a
+// zoological-safe clade, or null (ambiguous) when neither — let the user pick.
 export const codeForLineageNames = (
   names: (string | null | undefined)[]
-): NomenclatureCode => {
+): NomenclatureCode | null => {
   const lower = names
     .filter((n): n is string => Boolean(n))
     .map((n) => n.toLowerCase());
-  return lower.some((n) => ICN_GOVERNED_CLADES.includes(n))
-    ? 'botanical'
-    : 'zoological';
+  if (lower.some((n) => ICN_GOVERNED_CLADES.includes(n))) return 'botanical';
+  if (lower.some((n) => ZOOLOGICAL_SAFE_CLADES.includes(n)))
+    return 'zoological';
+  return null;
 };
 
 // The principal ranks, e.g. for filtering external (OTT) search results.
