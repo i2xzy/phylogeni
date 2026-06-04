@@ -9,10 +9,9 @@ import {
 } from '@chakra-ui/react';
 import { LuImage } from 'react-icons/lu';
 
-import { createClient } from '~/lib/utils/supabase/server';
-import resolveCladeId from '~/lib/utils/supabase/queries/resolveCladeId';
 import findImagesByName from '~/lib/utils/wiki/findImagesByName';
 
+import { getCladeName } from '../../../get-clade-name';
 import ComingSoonCard from '../coming-soon-card';
 
 export default async function CladeImagesTab({
@@ -22,17 +21,7 @@ export default async function CladeImagesTab({
 }) {
   const { id } = await params;
 
-  const supabase = await createClient();
-  const cladeId = await resolveCladeId(supabase, id);
-  if (cladeId == null) {
-    return null;
-  }
-
-  const { data: clade } = await supabase
-    .from('taxa')
-    .select('name')
-    .eq('id', cladeId)
-    .maybeSingle();
+  const clade = await getCladeName(id);
   if (!clade) {
     return null;
   }

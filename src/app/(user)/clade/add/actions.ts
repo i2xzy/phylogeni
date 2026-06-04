@@ -2,10 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { createClient } from '~/lib/utils/supabase/server';
 import { isValidRank } from '~/lib/constants/ranks';
 
-const EDIT_ROLES = ['editor', 'curator', 'admin'];
+import { requireEditor } from '../require-editor';
 
 export type CreateCladeInput = {
   name: string;
@@ -18,21 +17,9 @@ export type CreateCladeInput = {
 export async function createClade(
   input: CreateCladeInput
 ): Promise<{ id: number } | { error: string }> {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: 'You must be signed in to edit.' };
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-  if (!profile || !EDIT_ROLES.includes(profile.role ?? '')) {
-    return { error: 'You need editor access to make changes.' };
-  }
+  const auth = await requireEditor();
+  if (!auth.ok) return { error: auth.error };
+  const { user, supabase } = auth;
 
   const name = input.name.trim();
   if (!name) return { error: 'Name is required.' };

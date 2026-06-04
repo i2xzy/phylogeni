@@ -1,6 +1,4 @@
-import { createClient } from '~/lib/utils/supabase/server';
-import resolveCladeId from '~/lib/utils/supabase/queries/resolveCladeId';
-
+import { getCladeName } from '../../../get-clade-name';
 import SourcesPanel from './sources-panel';
 
 export default async function CladeSourcesTab({
@@ -10,17 +8,7 @@ export default async function CladeSourcesTab({
 }) {
   const { id } = await params;
 
-  const supabase = await createClient();
-  const cladeId = await resolveCladeId(supabase, id);
-  if (cladeId == null) {
-    return null;
-  }
-
-  const { data: clade } = await supabase
-    .from('taxa')
-    .select('name')
-    .eq('id', cladeId)
-    .maybeSingle();
+  const clade = await getCladeName(id);
   if (!clade) {
     return null;
   }

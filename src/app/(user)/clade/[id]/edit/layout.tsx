@@ -3,14 +3,13 @@ import { Metadata } from 'next';
 import NextLink from 'next/link';
 import { ReactNode } from 'react';
 
-import { createClient } from '~/lib/utils/supabase/server';
-import resolveCladeId from '~/lib/utils/supabase/queries/resolveCladeId';
 import {
   BreadcrumbCurrentLink,
   BreadcrumbLink,
   BreadcrumbRoot,
 } from '~/components/ui/breadcrumb';
 
+import { getCladeName } from '../../get-clade-name';
 import EditTabs from './edit-tabs';
 
 export const metadata: Metadata = {
@@ -26,17 +25,7 @@ export default async function CladeEditLayout({
 }) {
   const { id } = await params;
 
-  const supabase = await createClient();
-  const cladeId = await resolveCladeId(supabase, id);
-  if (cladeId == null) {
-    return null;
-  }
-
-  const { data: clade } = await supabase
-    .from('taxa')
-    .select('id, name')
-    .eq('id', cladeId)
-    .maybeSingle();
+  const clade = await getCladeName(id);
   if (!clade) {
     return null;
   }

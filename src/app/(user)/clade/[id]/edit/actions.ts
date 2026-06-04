@@ -2,11 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { createClient } from '~/lib/utils/supabase/server';
 import { Clade, CladeSnapshot } from '~/types/database';
 import { isValidRank } from '~/lib/constants/ranks';
 
-const EDIT_ROLES = ['editor', 'curator', 'admin'];
+import { requireEditor } from '../../require-editor';
 
 export type UpdateCladeInput = {
   id: number;
@@ -33,21 +32,9 @@ const snapshot = (row: Clade): CladeSnapshot => ({
 export async function updateClade(
   input: UpdateCladeInput
 ): Promise<{ error: string } | void> {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: 'You must be signed in to edit.' };
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-  if (!profile || !EDIT_ROLES.includes(profile.role ?? '')) {
-    return { error: 'You need editor access to make changes.' };
-  }
+  const auth = await requireEditor();
+  if (!auth.ok) return { error: auth.error };
+  const { user, supabase } = auth;
 
   const name = input.name.trim();
   if (!name) return { error: 'Name is required.' };
@@ -115,21 +102,9 @@ export async function updateClade(
 export async function moveClade(
   input: MoveCladeInput
 ): Promise<{ error: string } | void> {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: 'You must be signed in to edit.' };
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-  if (!profile || !EDIT_ROLES.includes(profile.role ?? '')) {
-    return { error: 'You need editor access to make changes.' };
-  }
+  const auth = await requireEditor();
+  if (!auth.ok) return { error: auth.error };
+  const { user, supabase } = auth;
 
   if (input.newParentId === input.id) {
     return { error: 'A clade cannot be its own parent.' };
