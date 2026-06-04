@@ -13,6 +13,7 @@ import {
   Stack,
   Tabs,
   Text,
+  Textarea,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState, useTransition } from 'react';
@@ -194,6 +195,7 @@ export default function CladeEditForm({
     <Tabs.Root defaultValue="details" variant="line" w="full">
       <Tabs.List>
         <Tabs.Trigger value="details">Details</Tabs.Trigger>
+        <Tabs.Trigger value="description">Description</Tabs.Trigger>
         <Tabs.Trigger value="relationships">Relationships</Tabs.Trigger>
         <Tabs.Trigger value="sources">Sources &amp; links</Tabs.Trigger>
       </Tabs.List>
@@ -287,6 +289,17 @@ export default function CladeEditForm({
             </ButtonGroup>
           </Stack>
         </form>
+      </Tabs.Content>
+
+      <Tabs.Content value="description">
+        <ComingSoonCard
+          title="Description"
+          helper="Write a description of this clade. Structured, sourced descriptions are coming."
+        >
+          <Field label="Description" helperText="Markdown supported.">
+            <Textarea placeholder={`Describe ${clade.name}…`} rows={6} />
+          </Field>
+        </ComingSoonCard>
       </Tabs.Content>
 
       <Tabs.Content value="relationships">
