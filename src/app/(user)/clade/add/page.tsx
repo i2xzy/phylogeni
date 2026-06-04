@@ -22,9 +22,10 @@ export default async function AddCladePage({
   const parentId = typeof parent === 'string' ? parent : null;
 
   let initialParent: { id: number; name: string } | null = null;
-  // The new clade inherits its parent's nomenclatural code, so derive it from
-  // the (prefilled) parent's lineage to pick the rank list.
+  // The new clade inherits its parent's nomenclatural code and sits below the
+  // parent, so derive both from the (prefilled) parent's lineage.
   let code: NomenclatureCode | null = null;
+  let ancestorRanks: string[] = [];
   if (parentId) {
     const parentClade = await getCladeDetails(parentId);
     if (parentClade) {
@@ -33,6 +34,10 @@ export default async function AddCladePage({
         parentClade.name,
         ...parentClade.lineage.map((a) => a.name),
       ]);
+      ancestorRanks = [
+        parentClade.rank,
+        ...parentClade.lineage.map((a) => a.rank),
+      ].filter((r): r is string => Boolean(r));
     }
   }
 
@@ -47,7 +52,11 @@ export default async function AddCladePage({
         gap={6}
       >
         <Heading size="lg">Add a clade</Heading>
-        <CreateCladeForm initialParent={initialParent} code={code} />
+        <CreateCladeForm
+          initialParent={initialParent}
+          code={code}
+          ancestorRanks={ancestorRanks}
+        />
       </Stack>
     </Container>
   );

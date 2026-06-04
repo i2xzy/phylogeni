@@ -23,9 +23,11 @@ import { updateClade } from '../actions';
 export default function DetailsForm({
   clade,
   code,
+  ancestorRanks,
 }: {
   clade: Clade;
   code: NomenclatureCode | null;
+  ancestorRanks: string[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -126,7 +128,12 @@ export default function DetailsForm({
               </Field>
 
               <Field label="Rank">
-                <RankSelect code={code} value={rank} onChange={setRank} />
+                <RankSelect
+                  code={code}
+                  ancestorRanks={ancestorRanks}
+                  value={rank}
+                  onChange={setRank}
+                />
               </Field>
 
               <Field label="Status">

@@ -162,6 +162,23 @@ export const rankIndex = (
   return (code ? RANK_VALUES_BY_CODE[code] : RANK_VALUES).indexOf(value);
 };
 
+// Ranks a clade may take given its ancestors' ranks: within the code's list,
+// only ranks strictly finer than the finest ranked ancestor, plus Clade
+// (unranked, always allowed). Ancestor ranks outside the ordering (e.g. Clade,
+// or a rank from the other code) impose no constraint.
+export const ranksForContext = (
+  code: NomenclatureCode | null,
+  ancestorRanks: string[]
+): Rank[] => {
+  const floor = ancestorRanks.reduce(
+    (max, r) => Math.max(max, rankIndex(r, code)),
+    -1
+  );
+  return ranksForCode(code).filter(
+    (r) => r.value === CLADE || rankIndex(r.value, code) > floor
+  );
+};
+
 // Clades governed by the ICN (algae, fungi, plants) use botanical ranks.
 // Matched case-insensitively against any name in a clade's lineage, so a
 // high-level clade covers all its descendants. Extend as the tree is seeded

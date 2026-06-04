@@ -11,20 +11,27 @@ import {
   SelectValueText,
 } from '~/components/ui/select';
 import { SegmentedControl } from '~/components/ui/segmented-control';
-import { ranksForCode, type NomenclatureCode } from '~/lib/constants/ranks';
+import {
+  ranksForContext,
+  rankLabel,
+  type NomenclatureCode,
+} from '~/lib/constants/ranks';
 
 const ALL = 'all';
 
 // Rank dropdown whose options follow the clade's nomenclatural code. When the
 // code is ambiguous (null — neither ICN-governed nor zoological-safe), all
 // ranks show and a toggle lets the user narrow to zoological or botanical.
+// Options are also limited to ranks finer than the clade's ranked ancestors.
 // A null value means the rank isn't set; clearing the select returns to null.
 export default function RankSelect({
   code,
+  ancestorRanks,
   value,
   onChange,
 }: {
   code: NomenclatureCode | null;
+  ancestorRanks: string[];
   value: string | null;
   onChange: (value: string | null) => void;
 }) {
@@ -32,10 +39,16 @@ export default function RankSelect({
   const effectiveCode =
     code ?? (override === ALL ? null : (override as NomenclatureCode));
 
-  const ranks = useMemo(
-    () => createListCollection({ items: ranksForCode(effectiveCode) }),
-    [effectiveCode]
-  );
+  const ranks = useMemo(() => {
+    const allowed = ranksForContext(effectiveCode, ancestorRanks);
+    // Keep the current value selectable even if it's outside the allowed set
+    // (e.g. legacy data), so it still displays.
+    const items =
+      value && !allowed.some((r) => r.value === value)
+        ? [{ value, label: rankLabel(value) }, ...allowed]
+        : allowed;
+    return createListCollection({ items });
+  }, [effectiveCode, ancestorRanks, value]);
 
   return (
     <Stack gap={2} width="full">

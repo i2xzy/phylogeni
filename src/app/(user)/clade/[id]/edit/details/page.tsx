@@ -22,5 +22,12 @@ export default async function CladeDetailsTab({
     ...clade.lineage.map((a) => a.name),
   ]);
 
-  return <DetailsForm clade={clade} code={code} />;
+  // Ancestor ranks constrain the options to ranks finer than them.
+  const ancestorRanks = clade.lineage
+    .map((a) => a.rank)
+    .filter((r): r is string => Boolean(r));
+
+  return (
+    <DetailsForm clade={clade} code={code} ancestorRanks={ancestorRanks} />
+  );
 }
