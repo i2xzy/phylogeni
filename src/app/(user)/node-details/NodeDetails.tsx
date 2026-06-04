@@ -22,19 +22,12 @@ import {
 } from '~/components/ui/select';
 import type { OttNodeDetails } from '~/types/ott';
 import type { ChildNode, LineageNode, CladeDetails } from '~/types/database';
+import { RANKS, NO_RANK } from '~/lib/constants/ranks';
 
 import ResultCard from './ResultCard';
 
 const ranks = createListCollection({
-  items: [
-    { value: 'No rank', label: 'No rank' },
-    { value: 'Species', label: 'Species' },
-    { value: 'Genus', label: 'Genus' },
-    { value: 'Family', label: 'Family' },
-    { value: 'Order', label: 'Order' },
-    { value: 'Class', label: 'Class' },
-    { value: 'Phylum', label: 'Phylum' },
-  ],
+  items: [{ value: NO_RANK, label: NO_RANK }, ...RANKS],
 });
 
 const sources = createListCollection({

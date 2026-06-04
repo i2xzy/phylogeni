@@ -23,19 +23,13 @@ import {
   SelectValueText,
 } from '~/components/ui/select';
 
+import { RANKS, NO_RANK } from '~/lib/constants/ranks';
+
 import CladeSearchSelect, { type SelectedClade } from '../clade-search-select';
 import { createClade } from './actions';
 
 const ranks = createListCollection({
-  items: [
-    { value: 'No rank', label: 'No rank' },
-    { value: 'Species', label: 'Species' },
-    { value: 'Genus', label: 'Genus' },
-    { value: 'Family', label: 'Family' },
-    { value: 'Order', label: 'Order' },
-    { value: 'Class', label: 'Class' },
-    { value: 'Phylum', label: 'Phylum' },
-  ],
+  items: [{ value: NO_RANK, label: NO_RANK }, ...RANKS],
 });
 
 export default function CreateCladeForm({
@@ -48,7 +42,7 @@ export default function CreateCladeForm({
 
   const [name, setName] = useState('');
   const [commonNames, setCommonNames] = useState('');
-  const [rank, setRank] = useState('No rank');
+  const [rank, setRank] = useState(NO_RANK);
   const [extant, setExtant] = useState<boolean | null>(null);
   const [parent, setParent] = useState<SelectedClade | null>(initialParent);
 

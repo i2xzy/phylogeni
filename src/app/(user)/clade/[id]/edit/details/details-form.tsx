@@ -23,19 +23,12 @@ import {
   SelectTrigger,
   SelectValueText,
 } from '~/components/ui/select';
+import { RANKS, NO_RANK } from '~/lib/constants/ranks';
 
 import { updateClade } from '../actions';
 
 const ranks = createListCollection({
-  items: [
-    { value: 'No rank', label: 'No rank' },
-    { value: 'Species', label: 'Species' },
-    { value: 'Genus', label: 'Genus' },
-    { value: 'Family', label: 'Family' },
-    { value: 'Order', label: 'Order' },
-    { value: 'Class', label: 'Class' },
-    { value: 'Phylum', label: 'Phylum' },
-  ],
+  items: [{ value: NO_RANK, label: NO_RANK }, ...RANKS],
 });
 
 export default function DetailsForm({ clade }: { clade: Clade }) {
@@ -46,13 +39,13 @@ export default function DetailsForm({ clade }: { clade: Clade }) {
   const [commonNames, setCommonNames] = useState(
     (clade.common_names ?? []).join(', ')
   );
-  const [rank, setRank] = useState(clade.rank ?? 'No rank');
+  const [rank, setRank] = useState(clade.rank ?? NO_RANK);
   const [extant, setExtant] = useState<boolean | null>(clade.extant);
 
   // Baseline of the last-saved values, used to detect unsaved changes.
   const [saved, setSaved] = useState({
     name: clade.name,
-    rank: clade.rank ?? 'No rank',
+    rank: clade.rank ?? NO_RANK,
     extant: clade.extant,
     common_names: clade.common_names ?? [],
   });

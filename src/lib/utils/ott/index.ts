@@ -1,4 +1,5 @@
 import type { Taxon, OttNodeDetails } from '~/types/ott';
+import { MAIN_RANKS } from '~/lib/constants/ranks';
 
 const baseUrl = 'https://api.opentreeoflife.org/v3/';
 
@@ -106,16 +107,6 @@ export const getNodeDetails = async (
     synonyms = result.synonyms?.filter((s) => s.match(/^[a-zA-Z ]+$/)) || [];
   }
 
-  const mainRanks = [
-    'domain',
-    'kingdom',
-    'phylum',
-    'class',
-    'order',
-    'family',
-    'genus',
-  ];
-
   return {
     id: openTreeResult.node_id,
     name: getName(openTreeResult),
@@ -129,7 +120,7 @@ export const getNodeDetails = async (
       ?.filter(
         (item) =>
           item.node_id === openTreeResult.lineage?.[0]?.node_id ||
-          (item.taxon && mainRanks.includes(item.taxon.rank))
+          (item.taxon && MAIN_RANKS.includes(item.taxon.rank))
       )
       .map((item) => ({
         id: item.node_id,
