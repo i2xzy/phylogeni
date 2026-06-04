@@ -13,11 +13,10 @@ import {
   Stack,
   Tabs,
   Text,
-  Textarea,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState, useTransition } from 'react';
-import { LuPlus } from 'react-icons/lu';
+import { LuImage, LuPlus } from 'react-icons/lu';
 
 import { Clade, ChildNode } from '~/types/database';
 import { Field } from '~/components/ui/field';
@@ -195,8 +194,8 @@ export default function CladeEditForm({
     <Tabs.Root defaultValue="details" variant="line" w="full">
       <Tabs.List>
         <Tabs.Trigger value="details">Details</Tabs.Trigger>
-        <Tabs.Trigger value="description">Description</Tabs.Trigger>
         <Tabs.Trigger value="relationships">Relationships</Tabs.Trigger>
+        <Tabs.Trigger value="images">Images</Tabs.Trigger>
         <Tabs.Trigger value="sources">Sources &amp; links</Tabs.Trigger>
       </Tabs.List>
 
@@ -291,17 +290,6 @@ export default function CladeEditForm({
         </form>
       </Tabs.Content>
 
-      <Tabs.Content value="description">
-        <ComingSoonCard
-          title="Description"
-          helper="Write a description of this clade. Structured, sourced descriptions are coming."
-        >
-          <Field label="Description" helperText="Markdown supported.">
-            <Textarea placeholder={`Describe ${clade.name}…`} rows={6} />
-          </Field>
-        </ComingSoonCard>
-      </Tabs.Content>
-
       <Tabs.Content value="relationships">
         <Stack w="full" gap={8}>
           <Card.Root>
@@ -378,6 +366,22 @@ export default function CladeEditForm({
             </Card.Body>
           </Card.Root>
         </Stack>
+      </Tabs.Content>
+
+      <Tabs.Content value="images">
+        <ComingSoonCard
+          title="Images"
+          helper="Add photos and illustrations for this clade."
+        >
+          <Stack gap={4} align="flex-start">
+            <Text color="fg.muted" fontSize="sm">
+              No images yet.
+            </Text>
+            <Button variant="outline">
+              <LuImage /> Upload image
+            </Button>
+          </Stack>
+        </ComingSoonCard>
       </Tabs.Content>
 
       <Tabs.Content value="sources">
