@@ -47,9 +47,10 @@ export default function RankSelect({
   );
 
   return (
-    <Stack gap={2}>
+    <Stack gap={2} width="full">
       {code === null && (
         <SegmentedControl
+          alignSelf="flex-start"
           size="sm"
           value={override}
           onValueChange={(e) => setOverride(e.value ?? ALL)}
@@ -61,6 +62,7 @@ export default function RankSelect({
         />
       )}
       <SelectRoot
+        width="full"
         collection={ranks}
         value={[value]}
         onValueChange={(e) => onChange(e.value[0])}
