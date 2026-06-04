@@ -10,7 +10,7 @@ import {
   Stack,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 
 import { Clade } from '~/types/database';
 import { Field } from '~/components/ui/field';
@@ -23,17 +23,32 @@ import {
   SelectTrigger,
   SelectValueText,
 } from '~/components/ui/select';
-import { RANKS, NO_RANK } from '~/lib/constants/ranks';
+import {
+  ranksForCode,
+  NO_RANK,
+  type NomenclatureCode,
+} from '~/lib/constants/ranks';
 
 import { updateClade } from '../actions';
 
-const ranks = createListCollection({
-  items: [{ value: NO_RANK, label: NO_RANK }, ...RANKS],
-});
-
-export default function DetailsForm({ clade }: { clade: Clade }) {
+export default function DetailsForm({
+  clade,
+  code,
+}: {
+  clade: Clade;
+  code: NomenclatureCode | null;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  // Rank options follow the clade's nomenclatural code (zoology/botany).
+  const ranks = useMemo(
+    () =>
+      createListCollection({
+        items: [{ value: NO_RANK, label: NO_RANK }, ...ranksForCode(code)],
+      }),
+    [code]
+  );
 
   const [name, setName] = useState(clade.name);
   const [commonNames, setCommonNames] = useState(

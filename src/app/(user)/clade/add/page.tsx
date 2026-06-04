@@ -1,7 +1,11 @@
 import { Container, Heading, Stack } from '@chakra-ui/react';
 import { Metadata } from 'next';
 
-import { createClient } from '~/lib/utils/supabase/server';
+import getCladeDetails from '~/lib/utils/supabase/queries/getCladeDetails';
+import {
+  codeForLineageNames,
+  type NomenclatureCode,
+} from '~/lib/constants/ranks';
 
 import CreateCladeForm from './create-clade-form';
 
@@ -15,17 +19,21 @@ export default async function AddCladePage({
   searchParams: Promise<{ parent?: string | string[] }>;
 }) {
   const { parent } = await searchParams;
-  const parentId = typeof parent === 'string' ? Number(parent) : NaN;
+  const parentId = typeof parent === 'string' ? parent : null;
 
   let initialParent: { id: number; name: string } | null = null;
-  if (!Number.isNaN(parentId)) {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from('taxa')
-      .select('id, name')
-      .eq('id', parentId)
-      .maybeSingle();
-    if (data) initialParent = { id: data.id, name: data.name };
+  // The new clade inherits its parent's nomenclatural code, so derive it from
+  // the (prefilled) parent's lineage to pick the rank list.
+  let code: NomenclatureCode | null = null;
+  if (parentId) {
+    const parentClade = await getCladeDetails(parentId);
+    if (parentClade) {
+      initialParent = { id: parentClade.id, name: parentClade.name };
+      code = codeForLineageNames([
+        parentClade.name,
+        ...parentClade.lineage.map((a) => a.name),
+      ]);
+    }
   }
 
   return (
@@ -39,7 +47,7 @@ export default async function AddCladePage({
         gap={6}
       >
         <Heading size="lg">Add a clade</Heading>
-        <CreateCladeForm initialParent={initialParent} />
+        <CreateCladeForm initialParent={initialParent} code={code} />
       </Stack>
     </Container>
   );

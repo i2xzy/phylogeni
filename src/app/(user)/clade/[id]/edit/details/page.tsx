@@ -1,5 +1,5 @@
-import { createClient } from '~/lib/utils/supabase/server';
-import resolveCladeId from '~/lib/utils/supabase/queries/resolveCladeId';
+import getCladeDetails from '~/lib/utils/supabase/queries/getCladeDetails';
+import { codeForLineageNames } from '~/lib/constants/ranks';
 
 import DetailsForm from './details-form';
 
@@ -10,20 +10,17 @@ export default async function CladeDetailsTab({
 }) {
   const { id } = await params;
 
-  const supabase = await createClient();
-  const cladeId = await resolveCladeId(supabase, id);
-  if (cladeId == null) {
-    return null;
-  }
-
-  const { data: clade } = await supabase
-    .from('taxa')
-    .select('*')
-    .eq('id', cladeId)
-    .maybeSingle();
+  const clade = await getCladeDetails(id);
   if (!clade) {
     return null;
   }
 
-  return <DetailsForm clade={clade} />;
+  // The applicable nomenclatural code (which rank list to show) is fixed by the
+  // clade's kingdom — look for a marker clade anywhere in its lineage.
+  const code = codeForLineageNames([
+    clade.name,
+    ...clade.lineage.map((a) => a.name),
+  ]);
+
+  return <DetailsForm clade={clade} code={code} />;
 }
