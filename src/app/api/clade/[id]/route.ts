@@ -50,7 +50,6 @@ export async function GET(
   return NextResponse.json({
     ...data,
     image: images[0]?.url,
-    images: images.slice(0, 10).map((i) => i.url),
     last_edited: lastRevision?.created_at ?? null,
   });
 }
