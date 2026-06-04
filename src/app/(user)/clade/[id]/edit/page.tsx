@@ -101,6 +101,7 @@ export default async function CladeEditPage({
           parentName={parentName}
           excludeIds={excludeIds}
           suggestions={suggestions}
+          childClades={clade.children}
         />
       </Stack>
     </Container>

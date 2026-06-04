@@ -12,13 +12,15 @@ import {
   Input,
   Stack,
   Tabs,
+  Text,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState, useTransition } from 'react';
 import { LuPlus } from 'react-icons/lu';
 
-import { Clade } from '~/types/database';
+import { Clade, ChildNode } from '~/types/database';
 import { Field } from '~/components/ui/field';
+import { TextLink } from '~/components/ui/text-link';
 import { toaster } from '~/components/ui/toaster';
 import { Radio, RadioGroup } from '~/components/ui/radio';
 import {
@@ -80,11 +82,13 @@ export default function CladeEditForm({
   parentName,
   excludeIds,
   suggestions,
+  childClades,
 }: {
   clade: Clade;
   parentName: string | null;
   excludeIds: number[];
   suggestions: SelectedClade[];
+  childClades: ChildNode[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -190,7 +194,7 @@ export default function CladeEditForm({
     <Tabs.Root defaultValue="details" variant="line" w="full">
       <Tabs.List>
         <Tabs.Trigger value="details">Details</Tabs.Trigger>
-        <Tabs.Trigger value="parent">Parent</Tabs.Trigger>
+        <Tabs.Trigger value="relationships">Relationships</Tabs.Trigger>
         <Tabs.Trigger value="sources">Sources &amp; links</Tabs.Trigger>
       </Tabs.List>
 
@@ -285,44 +289,83 @@ export default function CladeEditForm({
         </form>
       </Tabs.Content>
 
-      <Tabs.Content value="parent">
-        <Card.Root>
-          <Card.Header>
-            <Heading size="md">Parent</Heading>
-            <Card.Description>
-              {clade.parent_id == null
-                ? 'This is a root clade with no parent.'
-                : `Currently a child of ${parentName ?? `clade ${clade.parent_id}`}.`}
-            </Card.Description>
-          </Card.Header>
-          <Card.Body>
-            <Stack gap={3}>
-              <Field
-                label="Move to a new parent"
-                helperText="Search for the clade that should become the parent. The move applies immediately."
-              >
-                <CladeSearchSelect
-                  value={selectedParent}
-                  onChange={setSelectedParent}
-                  excludeIds={excludeIds}
-                  suggestions={suggestions}
-                />
-              </Field>
+      <Tabs.Content value="relationships">
+        <Stack w="full" gap={8}>
+          <Card.Root>
+            <Card.Header>
+              <Heading size="md">Parent</Heading>
+              <Card.Description>
+                {clade.parent_id == null
+                  ? 'This is a root clade with no parent.'
+                  : `Currently a child of ${parentName ?? `clade ${clade.parent_id}`}.`}
+              </Card.Description>
+            </Card.Header>
+            <Card.Body>
+              <Stack gap={3}>
+                <Field
+                  label="Move to a new parent"
+                  helperText="Search for the clade that should become the parent. The move applies immediately."
+                >
+                  <CladeSearchSelect
+                    value={selectedParent}
+                    onChange={setSelectedParent}
+                    excludeIds={excludeIds}
+                    suggestions={suggestions}
+                  />
+                </Field>
 
-              <Button
-                type="button"
-                alignSelf="flex-start"
-                loading={isMoving}
-                disabled={
-                  !selectedParent || selectedParent.id === clade.parent_id
-                }
-                onClick={move}
-              >
-                Move clade
-              </Button>
-            </Stack>
-          </Card.Body>
-        </Card.Root>
+                <Button
+                  type="button"
+                  alignSelf="flex-start"
+                  loading={isMoving}
+                  disabled={
+                    !selectedParent || selectedParent.id === clade.parent_id
+                  }
+                  onClick={move}
+                >
+                  Move clade
+                </Button>
+              </Stack>
+            </Card.Body>
+          </Card.Root>
+
+          <Card.Root>
+            <Card.Header>
+              <Heading size="md">Children</Heading>
+              <Card.Description>
+                Clades that sit directly under {clade.name}.
+              </Card.Description>
+            </Card.Header>
+            <Card.Body>
+              <Stack gap={4} align="flex-start">
+                {childClades.length > 0 ? (
+                  <Stack gap={1} w="full">
+                    {childClades.map((child) => (
+                      <TextLink key={child.id} href={`/clade/${child.id}`}>
+                        {child.extant === false ? '† ' : ''}
+                        {child.name}
+                        {child.rank ? ` · ${child.rank}` : ''}
+                      </TextLink>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Text color="fg.muted" fontSize="sm">
+                    No children yet.
+                  </Text>
+                )}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/clade/add?parent=${clade.id}`)}
+                >
+                  <LuPlus /> Add child
+                </Button>
+              </Stack>
+            </Card.Body>
+          </Card.Root>
+        </Stack>
       </Tabs.Content>
 
       <Tabs.Content value="sources">
