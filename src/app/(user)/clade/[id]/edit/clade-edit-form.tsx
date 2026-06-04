@@ -11,6 +11,7 @@ import {
   Fieldset,
   HStack,
   Heading,
+  Image,
   Input,
   SimpleGrid,
   Stack,
@@ -20,12 +21,14 @@ import {
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState, useTransition } from 'react';
 import { LuImage, LuPlus } from 'react-icons/lu';
+import useSWR from 'swr';
 
 import { Clade, ChildNode } from '~/types/database';
 import { Field } from '~/components/ui/field';
 import { TextLink } from '~/components/ui/text-link';
 import { toaster } from '~/components/ui/toaster';
 import { Radio, RadioGroup } from '~/components/ui/radio';
+import { fetcher } from '~/lib/utils/swr/fetchers';
 import {
   SelectRoot,
   SelectContent,
@@ -116,6 +119,14 @@ export default function CladeEditForm({
   const [selectedParent, setSelectedParent] = useState<SelectedClade | null>(
     null
   );
+
+  // The current Wikidata cover image (same source as the clade page), fetched
+  // client-side so it doesn't block the edit page render.
+  const { data: cladeImage } = useSWR<{ image?: string }>(
+    `/api/clade/${clade.id}`,
+    fetcher
+  );
+  const currentImage = cladeImage?.image;
 
   const move = () => {
     if (!selectedParent || selectedParent.id === clade.parent_id) return;
@@ -387,13 +398,24 @@ export default function CladeEditForm({
                 <AspectRatio key={i} ratio={1}>
                   <Center
                     position="relative"
+                    overflow="hidden"
                     borderWidth="1px"
                     borderColor={i === 0 ? 'teal.solid' : 'border'}
                     rounded="md"
                     bg="bg.muted"
                     color="fg.subtle"
                   >
-                    <LuImage />
+                    {i === 0 && currentImage ? (
+                      <Image
+                        src={currentImage}
+                        alt={clade.name}
+                        objectFit="cover"
+                        w="full"
+                        h="full"
+                      />
+                    ) : (
+                      <LuImage />
+                    )}
                     {i === 0 && (
                       <Badge
                         position="absolute"
