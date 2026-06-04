@@ -15,7 +15,7 @@ export default async function Account() {
 
   const { data, error, status } = await supabase
     .from('profiles')
-    .select('full_name, avatar_url')
+    .select('full_name, avatar_url, updated_at')
     .eq('id', user?.id || '')
     .single();
 
@@ -27,6 +27,7 @@ export default async function Account() {
     ...user,
     full_name: data?.full_name || '',
     avatar_url: data?.avatar_url || '',
+    updated_at: data?.updated_at || '',
   };
 
   return <AccountForm {...profile} />;
