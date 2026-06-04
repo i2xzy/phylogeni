@@ -2,14 +2,14 @@ import { Container, Heading, Stack } from '@chakra-ui/react';
 import { Metadata } from 'next';
 import NextLink from 'next/link';
 
-import { createClient } from '~/lib/utils/supabase/server';
-import resolveCladeId from '~/lib/utils/supabase/queries/resolveCladeId';
+import getCladeDetails from '~/lib/utils/supabase/queries/getCladeDetails';
 import {
   BreadcrumbCurrentLink,
   BreadcrumbLink,
   BreadcrumbRoot,
 } from '~/components/ui/breadcrumb';
 
+import type { SelectedClade } from '../../clade-search-select';
 import CladeEditForm from './clade-edit-form';
 
 export const metadata: Metadata = {
@@ -21,37 +21,35 @@ export default async function CladeEditPage({
 }: PageProps<'/clade/[id]/edit'>) {
   const { id } = await params;
 
-  const supabase = await createClient();
-  const cladeId = await resolveCladeId(supabase, id);
-
-  if (cladeId == null) {
-    return null;
-  }
-
-  const { data: clade, error } = await supabase
-    .from('taxa')
-    .select('*')
-    .eq('id', cladeId)
-    .maybeSingle();
-
-  if (error) {
-    console.error('error', error);
-    return null;
-  }
-
+  const clade = await getCladeDetails(id);
   if (!clade) {
     return null;
   }
 
-  let parentName: string | null = null;
-  if (clade.parent_id != null) {
-    const { data: parent } = await supabase
-      .from('taxa')
-      .select('name')
-      .eq('id', clade.parent_id)
-      .maybeSingle();
-    parentName = parent?.name ?? null;
-  }
+  // Ancestors (for the current parent name + "move up" suggestions) and direct
+  // children (which can't be the new parent) come from the same RPC.
+  const lineage: SelectedClade[] = clade.lineage.map((a) => ({
+    id: Number(a.id),
+    name: a.name,
+  }));
+
+  const parentName =
+    clade.parent_id != null
+      ? lineage.find((a) => a.id === clade.parent_id)?.name ?? null
+      : null;
+
+  // Suggest ancestors above the current parent (moving up the tree); the
+  // current parent itself would be a no-op.
+  const suggestions = lineage.filter(
+    (a) => a.id !== clade.id && a.id !== clade.parent_id
+  );
+
+  // Can't reparent under self, the current parent (no-op), or a direct child.
+  const excludeIds = [
+    clade.id,
+    ...(clade.parent_id != null ? [clade.parent_id] : []),
+    ...clade.children.map((c) => Number(c.id)),
+  ];
 
   return (
     <Container display="flex" gap="10" maxW="8xl">
@@ -72,7 +70,12 @@ export default async function CladeEditPage({
           </BreadcrumbRoot>
           <Heading size="lg">Editing {clade.name}</Heading>
         </Stack>
-        <CladeEditForm clade={clade} parentName={parentName} />
+        <CladeEditForm
+          clade={clade}
+          parentName={parentName}
+          excludeIds={excludeIds}
+          suggestions={suggestions}
+        />
       </Stack>
     </Container>
   );

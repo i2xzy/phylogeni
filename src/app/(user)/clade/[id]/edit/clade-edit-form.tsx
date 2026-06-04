@@ -77,9 +77,13 @@ const ComingSoonCard = ({
 export default function CladeEditForm({
   clade,
   parentName,
+  excludeIds,
+  suggestions,
 }: {
   clade: Clade;
   parentName: string | null;
+  excludeIds: number[];
+  suggestions: SelectedClade[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -262,7 +266,8 @@ export default function CladeEditForm({
                 <CladeSearchSelect
                   value={selectedParent}
                   onChange={setSelectedParent}
-                  excludeId={clade.id}
+                  excludeIds={excludeIds}
+                  suggestions={suggestions}
                 />
               </Field>
 
