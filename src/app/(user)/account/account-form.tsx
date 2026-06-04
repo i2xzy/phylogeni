@@ -24,7 +24,11 @@ import { FileUploadRoot } from '~/components/ui/file-upload';
 import { toaster } from '~/components/ui/toaster';
 import { createClient } from '~/lib/utils/supabase/client';
 import { formatDate } from '~/lib/utils/date';
-import { storagePathFromAvatarUrl } from '~/lib/utils/avatar';
+import {
+  storagePathFromAvatarUrl,
+  MAX_AVATAR_BYTES,
+  ALLOWED_AVATAR_TYPES,
+} from '~/lib/utils/avatar';
 import { isValidFullName } from '~/lib/utils/name';
 import { saveProfile } from './actions';
 
@@ -74,6 +78,22 @@ export default function AccountForm({
   useEffect(() => revokeObjectUrl, []);
 
   const selectImage = (file: File) => {
+    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+      toaster.create({
+        title: 'Unsupported image type',
+        description: 'Use a PNG, JPEG, WebP, or GIF.',
+        type: 'error',
+      });
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      toaster.create({
+        title: 'Image too large',
+        description: 'Please choose an image under 2 MB.',
+        type: 'error',
+      });
+      return;
+    }
     revokeObjectUrl();
     const previewUrl = URL.createObjectURL(file);
     objectUrlRef.current = previewUrl;
