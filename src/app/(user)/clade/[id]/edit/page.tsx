@@ -2,6 +2,7 @@ import { Container, Heading, Stack } from '@chakra-ui/react';
 import { Metadata } from 'next';
 import NextLink from 'next/link';
 
+import { createClient } from '~/lib/utils/supabase/server';
 import getCladeDetails from '~/lib/utils/supabase/queries/getCladeDetails';
 import {
   BreadcrumbCurrentLink,
@@ -38,11 +39,27 @@ export default async function CladeEditPage({
       ? lineage.find((a) => a.id === clade.parent_id)?.name ?? null
       : null;
 
-  // Suggest ancestors above the current parent (moving up the tree); the
-  // current parent itself would be a no-op.
-  const suggestions = lineage.filter(
+  // Suggest sensible new parents up front: recently-added siblings first (a
+  // common flow is creating a new sibling, then moving this clade into it),
+  // then ancestors above the current parent (moving up the tree).
+  const ancestors = lineage.filter(
     (a) => a.id !== clade.id && a.id !== clade.parent_id
   );
+
+  let siblings: SelectedClade[] = [];
+  if (clade.parent_id != null) {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from('taxa')
+      .select('id, name')
+      .eq('parent_id', clade.parent_id)
+      .neq('id', clade.id)
+      .order('created_at', { ascending: false })
+      .limit(8);
+    siblings = (data ?? []).map((s) => ({ id: s.id, name: s.name }));
+  }
+
+  const suggestions = [...siblings, ...ancestors];
 
   // Can't reparent under self, the current parent (no-op), or a direct child.
   const excludeIds = [
