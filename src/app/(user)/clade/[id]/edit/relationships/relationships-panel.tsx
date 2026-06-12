@@ -3,18 +3,26 @@
 import { Button, Card, Heading, Stack, Text } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { LuPlus } from 'react-icons/lu';
+import { LuPlus, LuTrash2 } from 'react-icons/lu';
 
 import { Clade, ChildNode } from '~/types/database';
 import { Field } from '~/components/ui/field';
 import { TextLink } from '~/components/ui/text-link';
 import { toaster } from '~/components/ui/toaster';
+import {
+  DialogRoot,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+  DialogFooter,
+} from '~/components/ui/dialog';
 import { rankLabel } from '~/lib/constants/ranks';
 
 import CladeSearchSelect, {
   type SelectedClade,
 } from '../../../clade-search-select';
-import { moveClade } from '../actions';
+import { moveClade, deleteClade } from '../actions';
 
 export default function RelationshipsPanel({
   clade,
@@ -34,6 +42,42 @@ export default function RelationshipsPanel({
   const [selectedParent, setSelectedParent] = useState<SelectedClade | null>(
     null
   );
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isDeleting, startDeleteTransition] = useTransition();
+
+  // Deleting promotes children one level up, so a root with children would
+  // orphan them — block it here too (the server enforces this as well).
+  const childCount = childClades.length;
+  const isRootWithChildren = clade.parent_id == null && childCount > 0;
+  const destination =
+    parentName ?? (clade.parent_id != null ? `clade ${clade.parent_id}` : null);
+  const deleteConsequence =
+    childCount === 0
+      ? `This permanently deletes ${clade.name} and can't be undone.`
+      : `Its ${childCount} child ${
+          childCount === 1 ? 'clade' : 'clades'
+        } will be moved under ${destination}, then ${
+          clade.name
+        } is permanently deleted. This can't be undone.`;
+
+  const remove = () => {
+    startDeleteTransition(async () => {
+      const result = await deleteClade({ id: clade.id });
+      if (result?.error) {
+        toaster.create({
+          title: 'Could not delete clade',
+          description: result.error,
+          type: 'error',
+        });
+        return;
+      }
+      toaster.create({ title: 'Clade deleted', type: 'success' });
+      setConfirmOpen(false);
+      router.push(
+        clade.parent_id != null ? `/clade/${clade.parent_id}` : '/tree'
+      );
+    });
+  };
 
   const move = () => {
     if (!selectedParent || selectedParent.id === clade.parent_id) return;
@@ -131,6 +175,60 @@ export default function RelationshipsPanel({
           </Stack>
         </Card.Body>
       </Card.Root>
+
+      <Card.Root borderColor="border.error">
+        <Card.Header>
+          <Heading size="md" color="fg.error">
+            Delete this clade
+          </Heading>
+          <Card.Description>
+            {isRootWithChildren
+              ? `${clade.name} is a root clade with children. Move or delete its children before deleting it.`
+              : childCount > 0
+                ? `Removes ${clade.name} from the tree. Its children move up to ${destination}.`
+                : `Removes ${clade.name} from the tree.`}
+          </Card.Description>
+        </Card.Header>
+        <Card.Body>
+          <Button
+            type="button"
+            alignSelf="flex-start"
+            colorPalette="red"
+            variant="outline"
+            disabled={isRootWithChildren}
+            onClick={() => setConfirmOpen(true)}
+          >
+            <LuTrash2 /> Delete clade
+          </Button>
+        </Card.Body>
+      </Card.Root>
+
+      <DialogRoot
+        role="alertdialog"
+        open={confirmOpen}
+        onOpenChange={(e) => setConfirmOpen(e.open)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {clade.name}?</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <Text>{deleteConsequence}</Text>
+          </DialogBody>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setConfirmOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button colorPalette="red" loading={isDeleting} onClick={remove}>
+              Delete clade
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
     </Stack>
   );
 }
