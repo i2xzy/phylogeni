@@ -2,7 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { isValidRank } from '~/lib/constants/ranks';
+import {
+  isValidRank,
+  codeForLineageNames,
+  rankAllowedUnder,
+  requiresBinomial,
+  isBinomialName,
+} from '~/lib/constants/ranks';
+import getCladeDetails from '~/lib/utils/supabase/queries/getCladeDetails';
 
 import { requireEditor } from '../require-editor';
 
@@ -24,16 +31,32 @@ export async function createClade(
   const name = input.name.trim();
   if (!name) return { error: 'Name is required.' };
 
-  const { data: parent } = await supabase
-    .from('taxa')
-    .select('id')
-    .eq('id', input.parentId)
-    .maybeSingle();
+  const parent = await getCladeDetails(String(input.parentId));
   if (!parent) return { error: 'Parent clade not found.' };
 
   const rank = input.rank || null;
   if (rank !== null && !isValidRank(rank)) {
     return { error: 'Invalid rank.' };
+  }
+
+  // The new clade sits under the parent, so its rank must be finer than the
+  // parent's and every ancestor's.
+  const code = codeForLineageNames([
+    parent.name,
+    ...parent.lineage.map((a) => a.name),
+  ]);
+  const ancestorRanks = [
+    parent.rank,
+    ...parent.lineage.map((a) => a.rank),
+  ].filter((r): r is string => Boolean(r));
+
+  if (!rankAllowedUnder(rank, code, ancestorRanks)) {
+    return {
+      error: 'Rank must be finer than the parent clade and its ancestors.',
+    };
+  }
+  if (requiresBinomial(rank, code) && !isBinomialName(name)) {
+    return { error: 'A species needs a binomial name, e.g. "Homo sapiens".' };
   }
 
   const { data: created, error: insertError } = await supabase

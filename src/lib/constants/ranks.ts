@@ -179,6 +179,39 @@ export const ranksForContext = (
   );
 };
 
+// Whether a rank is allowed for a clade with the given ancestor ranks: it must
+// be strictly finer than the finest ranked ancestor. Unset/Clade ranks, and
+// ranks outside the code's ordering, are not constrained here.
+export const rankAllowedUnder = (
+  rank: string | null,
+  code: NomenclatureCode | null,
+  ancestorRanks: string[]
+): boolean => {
+  if (!rank || rank === CLADE) return true;
+  const idx = rankIndex(rank, code);
+  if (idx === -1) return true;
+  const floor = ancestorRanks.reduce(
+    (max, r) => Math.max(max, rankIndex(r, code)),
+    -1
+  );
+  return idx > floor;
+};
+
+// Species and finer ranks (subspecies, variety, form, ...) need a binomial
+// name (at least genus + epithet).
+export const requiresBinomial = (
+  rank: string | null,
+  code: NomenclatureCode | null
+): boolean => {
+  if (!rank || rank === CLADE) return false;
+  const speciesIdx = rankIndex('species', code);
+  const idx = rankIndex(rank, code);
+  return idx !== -1 && speciesIdx !== -1 && idx >= speciesIdx;
+};
+
+export const isBinomialName = (name: string): boolean =>
+  name.trim().split(/\s+/).length >= 2;
+
 // Clades governed by the ICN (algae, fungi, plants) use botanical ranks.
 // Matched case-insensitively against any name in a clade's lineage, so a
 // high-level clade covers all its descendants. Extend as the tree is seeded

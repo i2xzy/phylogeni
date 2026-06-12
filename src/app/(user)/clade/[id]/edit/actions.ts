@@ -3,7 +3,14 @@
 import { revalidatePath } from 'next/cache';
 
 import { Clade, CladeSnapshot } from '~/types/database';
-import { isValidRank } from '~/lib/constants/ranks';
+import {
+  isValidRank,
+  codeForLineageNames,
+  rankAllowedUnder,
+  requiresBinomial,
+  isBinomialName,
+} from '~/lib/constants/ranks';
+import getCladeDetails from '~/lib/utils/supabase/queries/getCladeDetails';
 
 import { requireEditor } from '../../require-editor';
 
@@ -39,16 +46,27 @@ export async function updateClade(
   const name = input.name.trim();
   if (!name) return { error: 'Name is required.' };
 
-  const { data: before } = await supabase
-    .from('taxa')
-    .select('*')
-    .eq('id', input.id)
-    .maybeSingle();
+  const before = await getCladeDetails(String(input.id));
   if (!before) return { error: 'Clade not found.' };
 
   const rank = input.rank || null;
   if (rank !== null && !isValidRank(rank)) {
     return { error: 'Invalid rank.' };
+  }
+
+  const code = codeForLineageNames([
+    before.name,
+    ...before.lineage.map((a) => a.name),
+  ]);
+  const ancestorRanks = before.lineage
+    .map((a) => a.rank)
+    .filter((r): r is string => Boolean(r));
+
+  if (!rankAllowedUnder(rank, code, ancestorRanks)) {
+    return { error: 'Rank must be finer than its ancestors.' };
+  }
+  if (requiresBinomial(rank, code) && !isBinomialName(name)) {
+    return { error: 'A species needs a binomial name, e.g. "Homo sapiens".' };
   }
 
   const next = {
@@ -122,30 +140,33 @@ export async function moveClade(
     return;
   }
 
-  const { data: newParent } = await supabase
-    .from('taxa')
-    .select('id, parent_id')
-    .eq('id', input.newParentId)
-    .maybeSingle();
+  const newParent = await getCladeDetails(String(input.newParentId));
   if (!newParent) return { error: 'New parent clade not found.' };
 
-  // Cycle guard: walk up from the new parent. If we reach the clade being
-  // moved, the move would put a clade beneath its own descendant.
-  let ancestorId = newParent.parent_id;
-  let steps = 0;
-  while (ancestorId != null && steps < 10000) {
-    if (ancestorId === input.id) {
-      return {
-        error: 'Cannot move a clade beneath one of its own descendants.',
-      };
-    }
-    const { data: ancestor } = await supabase
-      .from('taxa')
-      .select('parent_id')
-      .eq('id', ancestorId)
-      .maybeSingle();
-    ancestorId = ancestor?.parent_id ?? null;
-    steps += 1;
+  // Cycle guard: if the clade appears in the new parent's lineage, the move
+  // would put it beneath its own descendant. (One RPC, fails closed; DB-level
+  // enforcement is the robust long-term fix for the concurrent case.)
+  const newParentAncestorIds = newParent.lineage.map((a) => Number(a.id));
+  if (newParentAncestorIds.includes(input.id)) {
+    return {
+      error: 'Cannot move a clade beneath one of its own descendants.',
+    };
+  }
+
+  // The clade must stay finer-ranked than its new ancestors.
+  const code = codeForLineageNames([
+    newParent.name,
+    ...newParent.lineage.map((a) => a.name),
+  ]);
+  const newAncestorRanks = [
+    newParent.rank,
+    ...newParent.lineage.map((a) => a.rank),
+  ].filter((r): r is string => Boolean(r));
+  if (!rankAllowedUnder(before.rank, code, newAncestorRanks)) {
+    return {
+      error:
+        "This clade's rank isn't finer than the new parent's. Pick a different parent or change the rank first.",
+    };
   }
 
   const { error: updateError } = await supabase
