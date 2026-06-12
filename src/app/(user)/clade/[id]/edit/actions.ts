@@ -27,6 +27,10 @@ export type MoveCladeInput = {
   newParentId: number;
 };
 
+export type DeleteCladeInput = {
+  id: number;
+};
+
 const snapshot = (row: Clade): CladeSnapshot => ({
   id: row.id,
   name: row.name,
@@ -195,5 +199,84 @@ export async function moveClade(
   revalidatePath(`/clade/${input.id}/revisions`);
   if (before.parent_id != null) revalidatePath(`/clade/${before.parent_id}`);
   revalidatePath(`/clade/${input.newParentId}`);
+  revalidatePath('/tree');
+}
+
+export async function deleteClade(
+  input: DeleteCladeInput
+): Promise<{ error: string } | void> {
+  const auth = await requireEditor();
+  if (!auth.ok) return { error: auth.error };
+  const { user, supabase } = auth;
+
+  const { data: clade } = await supabase
+    .from('taxa')
+    .select('*')
+    .eq('id', input.id)
+    .maybeSingle();
+  if (!clade) return { error: 'Clade not found.' };
+
+  // Children are promoted one level up (reparented to this clade's parent), so
+  // a root with children can't be deleted — it would orphan them into roots.
+  const { data: children } = await supabase
+    .from('taxa')
+    .select('*')
+    .eq('parent_id', input.id);
+  const childRows = children ?? [];
+  if (clade.parent_id == null && childRows.length > 0) {
+    return {
+      error:
+        'This is a root clade with children. Move or delete its children before deleting it.',
+    };
+  }
+
+  // Reparent the children first so they survive the delete; only then is the
+  // clade childless and safe to remove.
+  if (childRows.length > 0) {
+    const { error: reparentError } = await supabase
+      .from('taxa')
+      .update({ parent_id: clade.parent_id })
+      .eq('parent_id', input.id);
+    if (reparentError) return { error: reparentError.message };
+  }
+
+  const { error: deleteError } = await supabase
+    .from('taxa')
+    .delete()
+    .eq('id', input.id);
+  if (deleteError) return { error: deleteError.message };
+
+  // Record the deletion (clade_id is null — the row is gone — so the feed reads
+  // the name from the `before` snapshot) plus a MOVE for each promoted child.
+  const revisions = [
+    {
+      clade_id: null,
+      target_clade_id: clade.parent_id,
+      user_id: user.id,
+      mode: 'DELETE' as const,
+      changed_fields: [],
+      before: snapshot(clade),
+      after: null,
+    },
+    ...childRows.map((child) => ({
+      clade_id: child.id,
+      target_clade_id: clade.parent_id,
+      user_id: user.id,
+      mode: 'MOVE' as const,
+      changed_fields: ['parent_id'],
+      before: snapshot(child),
+      after: snapshot({ ...child, parent_id: clade.parent_id }),
+    })),
+  ];
+  const { error: revisionError } = await supabase
+    .from('clade_revisions')
+    .insert(revisions);
+  if (revisionError) {
+    // The delete succeeded; a missing revision shouldn't block the user.
+    console.error('Failed to record clade revision', revisionError);
+  }
+
+  if (clade.parent_id != null) revalidatePath(`/clade/${clade.parent_id}`);
+  childRows.forEach((child) => revalidatePath(`/clade/${child.id}`));
   revalidatePath('/tree');
 }
