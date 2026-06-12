@@ -240,11 +240,17 @@ export async function deleteClade(
     if (reparentError) return { error: reparentError.message };
   }
 
-  const { error: deleteError } = await supabase
+  const { data: deleted, error: deleteError } = await supabase
     .from('taxa')
     .delete()
-    .eq('id', input.id);
+    .eq('id', input.id)
+    .select('id');
   if (deleteError) return { error: deleteError.message };
+  // RLS blocks silently (no error, zero rows). The row existed above, so an
+  // empty result means the delete policy denied it.
+  if (!deleted || deleted.length === 0) {
+    return { error: 'You need editor access to delete this clade.' };
+  }
 
   // Record the deletion (clade_id is null — the row is gone — so the feed reads
   // the name from the `before` snapshot) plus a MOVE for each promoted child.
