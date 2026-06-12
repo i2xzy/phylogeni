@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Center, DialogTrigger, Input, Text, chakra } from '@chakra-ui/react';
 
 import { postFetcher } from '~/lib/utils/swr/fetchers';
+import { rankLabel } from '~/lib/constants/ranks';
 import { DialogContent, DialogRoot } from 'components/ui/dialog';
 import { ComboboxItem } from './ComboboxItem';
 
@@ -91,7 +92,7 @@ export const CommandMenu = (props: Props) => {
     data?.map((item) => ({
       value: item.id.toString(),
       label: `${item.extant === false ? '†' : ''}${item.name}`,
-      category: item.rank,
+      category: item.rank ? rankLabel(item.rank) : null,
     })) || [];
 
   const collection = createListCollection({ items: results });

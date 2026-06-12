@@ -19,11 +19,12 @@ const SidebarButton = ({ text, href, children }: Props) => {
       fontSize="small"
       h="unset"
       px={2}
-      color="white"
+      color="fg"
       onClick={() => router.push(href)}
     >
       <Center
         bg="teal"
+        color="white"
         p={0}
         h={12}
         w={12}
