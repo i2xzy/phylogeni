@@ -22,11 +22,11 @@ import { createClade } from './actions';
 
 export default function CreateCladeForm({
   initialParent,
-  code,
+  nomenclature,
   ancestorRanks,
 }: {
   initialParent: SelectedClade | null;
-  code: NomenclatureCode | null;
+  nomenclature: NomenclatureCode | null;
   ancestorRanks: string[];
 }) {
   const router = useRouter();
@@ -100,7 +100,7 @@ export default function CreateCladeForm({
 
               <Field label="Rank">
                 <RankSelect
-                  code={code}
+                  nomenclature={nomenclature}
                   ancestorRanks={ancestorRanks}
                   value={rank}
                   onChange={setRank}

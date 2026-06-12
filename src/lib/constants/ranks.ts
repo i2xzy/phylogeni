@@ -1,8 +1,8 @@
 // Single source of truth for taxonomic ranks. The nomenclatural codes
 // (zoological = ICZN, botanical = ICN) recognise different ranks and, at the
 // phylum level, use different names (zoology "phylum" vs botany "division"), so
-// each code has its own ordered list. A clade's code is derived from its
-// lineage (its kingdom), see codeForLineageNames().
+// each nomenclature has its own ordered list. A clade's nomenclature is derived from its
+// lineage (its kingdom), see nomenclatureForLineage().
 //
 // Casing: values are lowercase (how external sources represent ranks); imports
 // from other databases should be normalised to these values.
@@ -17,7 +17,7 @@ export type NomenclatureCode = 'zoological' | 'botanical';
 export const CLADE = 'clade';
 
 // Every rank across all codes, with its display label. Used for labels,
-// validation, and as the fallback list when a clade's code is unknown.
+// validation, and as the fallback list when a clade's nomenclature is unknown.
 export const RANKS: Rank[] = [
   { value: CLADE, label: 'Clade' },
   { value: 'domain', label: 'Domain' },
@@ -61,7 +61,7 @@ export const RANKS: Rank[] = [
 
 export const RANK_VALUES = RANKS.map((r) => r.value);
 
-// Ordered rank values per code (broadest -> finest).
+// Ordered rank values per nomenclature (broadest -> finest).
 const ZOOLOGICAL_RANK_VALUES = [
   'domain',
   'superkingdom',
@@ -125,7 +125,7 @@ const BOTANICAL_RANK_VALUES = [
   'subform',
 ];
 
-const RANK_VALUES_BY_CODE: Record<NomenclatureCode, string[]> = {
+const RANK_VALUES_BY_NOMENCLATURE: Record<NomenclatureCode, string[]> = {
   zoological: ZOOLOGICAL_RANK_VALUES,
   botanical: BOTANICAL_RANK_VALUES,
 };
@@ -139,59 +139,63 @@ export const rankLabel = (value: string) =>
 
 export const isValidRank = (value: string) => RANK_VALUES.includes(value);
 
-// The ranks to offer for a clade, given its code (Clade first). Unknown code
+// The ranks to offer for a clade, given its nomenclature (Clade first). Unknown nomenclature
 // -> all ranks.
-export const ranksForCode = (code: NomenclatureCode | null): Rank[] => {
-  if (!code) return RANKS; // already lists Clade first, then every rank
+export const ranksForNomenclature = (
+  nomenclature: NomenclatureCode | null
+): Rank[] => {
+  if (!nomenclature) return RANKS; // already lists Clade first, then every rank
   return [
     { value: CLADE, label: rankLabel(CLADE) },
-    ...RANK_VALUES_BY_CODE[code].map((value) => ({
+    ...RANK_VALUES_BY_NOMENCLATURE[nomenclature].map((value) => ({
       value,
       label: rankLabel(value),
     })),
   ];
 };
 
-// Position in the hierarchy (0 = broadest), within a code's ordering or the
+// Position in the hierarchy (0 = broadest), within a nomenclature's ordering or the
 // full list. -1 for an unranked clade or a rank outside that ordering.
 export const rankIndex = (
   value: string,
-  code: NomenclatureCode | null = null
+  nomenclature: NomenclatureCode | null = null
 ) => {
   if (value === CLADE) return -1;
-  return (code ? RANK_VALUES_BY_CODE[code] : RANK_VALUES).indexOf(value);
+  return (
+    nomenclature ? RANK_VALUES_BY_NOMENCLATURE[nomenclature] : RANK_VALUES
+  ).indexOf(value);
 };
 
-// Ranks a clade may take given its ancestors' ranks: within the code's list,
+// Ranks a clade may take given its ancestors' ranks: within the nomenclature's list,
 // only ranks strictly finer than the finest ranked ancestor, plus Clade
 // (unranked, always allowed). Ancestor ranks outside the ordering (e.g. Clade,
-// or a rank from the other code) impose no constraint.
+// or a rank from the other nomenclature) impose no constraint.
 export const ranksForContext = (
-  code: NomenclatureCode | null,
+  nomenclature: NomenclatureCode | null,
   ancestorRanks: string[]
 ): Rank[] => {
   const floor = ancestorRanks.reduce(
-    (max, r) => Math.max(max, rankIndex(r, code)),
+    (max, r) => Math.max(max, rankIndex(r, nomenclature)),
     -1
   );
-  return ranksForCode(code).filter(
-    (r) => r.value === CLADE || rankIndex(r.value, code) > floor
+  return ranksForNomenclature(nomenclature).filter(
+    (r) => r.value === CLADE || rankIndex(r.value, nomenclature) > floor
   );
 };
 
 // Whether a rank is allowed for a clade with the given ancestor ranks: it must
 // be strictly finer than the finest ranked ancestor. Unset/Clade ranks, and
-// ranks outside the code's ordering, are not constrained here.
+// ranks outside the nomenclature's ordering, are not constrained here.
 export const rankAllowedUnder = (
   rank: string | null,
-  code: NomenclatureCode | null,
+  nomenclature: NomenclatureCode | null,
   ancestorRanks: string[]
 ): boolean => {
   if (!rank || rank === CLADE) return true;
-  const idx = rankIndex(rank, code);
+  const idx = rankIndex(rank, nomenclature);
   if (idx === -1) return true;
   const floor = ancestorRanks.reduce(
-    (max, r) => Math.max(max, rankIndex(r, code)),
+    (max, r) => Math.max(max, rankIndex(r, nomenclature)),
     -1
   );
   return idx > floor;
@@ -201,11 +205,11 @@ export const rankAllowedUnder = (
 // name (at least genus + epithet).
 export const requiresBinomial = (
   rank: string | null,
-  code: NomenclatureCode | null
+  nomenclature: NomenclatureCode | null
 ): boolean => {
   if (!rank || rank === CLADE) return false;
-  const speciesIdx = rankIndex('species', code);
-  const idx = rankIndex(rank, code);
+  const speciesIdx = rankIndex('species', nomenclature);
+  const idx = rankIndex(rank, nomenclature);
   return idx !== -1 && speciesIdx !== -1 && idx >= speciesIdx;
 };
 
@@ -229,7 +233,7 @@ export const ZOOLOGICAL_SAFE_CLADES = ['animalia', 'metazoa', 'eubacteria'];
 // Derive the nomenclatural code from a lineage (the clade's own + ancestor
 // names): botanical under an ICN-governed clade, zoological under a
 // zoological-safe clade, or null (ambiguous) when neither — let the user pick.
-export const codeForLineageNames = (
+export const nomenclatureForLineage = (
   names: (string | null | undefined)[]
 ): NomenclatureCode | null => {
   const lower = names

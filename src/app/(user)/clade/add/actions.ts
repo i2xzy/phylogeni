@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import {
   isValidRank,
-  codeForLineageNames,
+  nomenclatureForLineage,
   rankAllowedUnder,
   requiresBinomial,
   isBinomialName,
@@ -41,7 +41,7 @@ export async function createClade(
 
   // The new clade sits under the parent, so its rank must be finer than the
   // parent's and every ancestor's.
-  const code = codeForLineageNames([
+  const nomenclature = nomenclatureForLineage([
     parent.name,
     ...parent.lineage.map((a) => a.name),
   ]);
@@ -50,12 +50,12 @@ export async function createClade(
     ...parent.lineage.map((a) => a.rank),
   ].filter((r): r is string => Boolean(r));
 
-  if (!rankAllowedUnder(rank, code, ancestorRanks)) {
+  if (!rankAllowedUnder(rank, nomenclature, ancestorRanks)) {
     return {
       error: 'Rank must be finer than the parent clade and its ancestors.',
     };
   }
-  if (requiresBinomial(rank, code) && !isBinomialName(name)) {
+  if (requiresBinomial(rank, nomenclature) && !isBinomialName(name)) {
     return { error: 'A species needs a binomial name, e.g. "Homo sapiens".' };
   }
 

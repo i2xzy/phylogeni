@@ -20,27 +20,27 @@ import {
 const ALL = 'all';
 
 // Rank dropdown whose options follow the clade's nomenclatural code. When the
-// code is ambiguous (null — neither ICN-governed nor zoological-safe), all
+// nomenclature is ambiguous (null — neither ICN-governed nor zoological-safe), all
 // ranks show and a toggle lets the user narrow to zoological or botanical.
 // Options are also limited to ranks finer than the clade's ranked ancestors.
 // A null value means the rank isn't set; clearing the select returns to null.
 export default function RankSelect({
-  code,
+  nomenclature,
   ancestorRanks,
   value,
   onChange,
 }: {
-  code: NomenclatureCode | null;
+  nomenclature: NomenclatureCode | null;
   ancestorRanks: string[];
   value: string | null;
   onChange: (value: string | null) => void;
 }) {
   const [override, setOverride] = useState<string>(ALL);
-  const effectiveCode =
-    code ?? (override === ALL ? null : (override as NomenclatureCode));
+  const effectiveNomenclature =
+    nomenclature ?? (override === ALL ? null : (override as NomenclatureCode));
 
   const ranks = useMemo(() => {
-    const allowed = ranksForContext(effectiveCode, ancestorRanks);
+    const allowed = ranksForContext(effectiveNomenclature, ancestorRanks);
     // Keep the current value selectable even if it's outside the allowed set
     // (e.g. legacy data), so it still displays.
     const items =
@@ -48,11 +48,11 @@ export default function RankSelect({
         ? [{ value, label: rankLabel(value) }, ...allowed]
         : allowed;
     return createListCollection({ items });
-  }, [effectiveCode, ancestorRanks, value]);
+  }, [effectiveNomenclature, ancestorRanks, value]);
 
   return (
     <Stack gap={2} width="full">
-      {code === null && (
+      {nomenclature === null && (
         <SegmentedControl
           alignSelf="flex-start"
           size="xs"

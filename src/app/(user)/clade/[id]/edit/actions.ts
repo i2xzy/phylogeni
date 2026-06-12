@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { Clade, CladeSnapshot } from '~/types/database';
 import {
   isValidRank,
-  codeForLineageNames,
+  nomenclatureForLineage,
   rankAllowedUnder,
   requiresBinomial,
   isBinomialName,
@@ -54,7 +54,7 @@ export async function updateClade(
     return { error: 'Invalid rank.' };
   }
 
-  const code = codeForLineageNames([
+  const nomenclature = nomenclatureForLineage([
     before.name,
     ...before.lineage.map((a) => a.name),
   ]);
@@ -62,10 +62,10 @@ export async function updateClade(
     .map((a) => a.rank)
     .filter((r): r is string => Boolean(r));
 
-  if (!rankAllowedUnder(rank, code, ancestorRanks)) {
+  if (!rankAllowedUnder(rank, nomenclature, ancestorRanks)) {
     return { error: 'Rank must be finer than its ancestors.' };
   }
-  if (requiresBinomial(rank, code) && !isBinomialName(name)) {
+  if (requiresBinomial(rank, nomenclature) && !isBinomialName(name)) {
     return { error: 'A species needs a binomial name, e.g. "Homo sapiens".' };
   }
 
@@ -154,7 +154,7 @@ export async function moveClade(
   }
 
   // The clade must stay finer-ranked than its new ancestors.
-  const code = codeForLineageNames([
+  const nomenclature = nomenclatureForLineage([
     newParent.name,
     ...newParent.lineage.map((a) => a.name),
   ]);
@@ -162,7 +162,7 @@ export async function moveClade(
     newParent.rank,
     ...newParent.lineage.map((a) => a.rank),
   ].filter((r): r is string => Boolean(r));
-  if (!rankAllowedUnder(before.rank, code, newAncestorRanks)) {
+  if (!rankAllowedUnder(before.rank, nomenclature, newAncestorRanks)) {
     return {
       error:
         "This clade's rank isn't finer than the new parent's. Pick a different parent or change the rank first.",

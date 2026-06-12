@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 
 import getCladeDetails from '~/lib/utils/supabase/queries/getCladeDetails';
 import {
-  codeForLineageNames,
+  nomenclatureForLineage,
   type NomenclatureCode,
 } from '~/lib/constants/ranks';
 
@@ -24,13 +24,13 @@ export default async function AddCladePage({
   let initialParent: { id: number; name: string } | null = null;
   // The new clade inherits its parent's nomenclatural code and sits below the
   // parent, so derive both from the (prefilled) parent's lineage.
-  let code: NomenclatureCode | null = null;
+  let nomenclature: NomenclatureCode | null = null;
   let ancestorRanks: string[] = [];
   if (parentId) {
     const parentClade = await getCladeDetails(parentId);
     if (parentClade) {
       initialParent = { id: parentClade.id, name: parentClade.name };
-      code = codeForLineageNames([
+      nomenclature = nomenclatureForLineage([
         parentClade.name,
         ...parentClade.lineage.map((a) => a.name),
       ]);
@@ -54,7 +54,7 @@ export default async function AddCladePage({
         <Heading size="lg">Add a clade</Heading>
         <CreateCladeForm
           initialParent={initialParent}
-          code={code}
+          nomenclature={nomenclature}
           ancestorRanks={ancestorRanks}
         />
       </Stack>
