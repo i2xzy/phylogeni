@@ -1,5 +1,5 @@
 import getCladeDetails from '~/lib/utils/supabase/queries/getCladeDetails';
-import { codeForLineageNames } from '~/lib/constants/ranks';
+import { nomenclatureForLineage } from '~/lib/constants/ranks';
 
 import DetailsForm from './details-form';
 
@@ -17,7 +17,7 @@ export default async function CladeDetailsTab({
 
   // The applicable nomenclatural code (which rank list to show) is fixed by the
   // clade's kingdom — look for a marker clade anywhere in its lineage.
-  const code = codeForLineageNames([
+  const nomenclature = nomenclatureForLineage([
     clade.name,
     ...clade.lineage.map((a) => a.name),
   ]);
@@ -28,6 +28,10 @@ export default async function CladeDetailsTab({
     .filter((r): r is string => Boolean(r));
 
   return (
-    <DetailsForm clade={clade} code={code} ancestorRanks={ancestorRanks} />
+    <DetailsForm
+      clade={clade}
+      nomenclature={nomenclature}
+      ancestorRanks={ancestorRanks}
+    />
   );
 }
