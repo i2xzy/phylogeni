@@ -7,7 +7,7 @@ import { CladeDetails, RevisionWithUser } from '~/types/database';
 import { formatDateTime } from '~/lib/utils/date';
 import ChangesDialog from './ChangesDialog';
 
-const CladeRef = ({
+export const CladeRef = ({
   id,
   fallbackName,
 }: {
@@ -29,7 +29,7 @@ const CladeRef = ({
   );
 };
 
-const UserRef = ({ user }: { user: RevisionWithUser['user'] }) => {
+export const UserRef = ({ user }: { user: RevisionWithUser['user'] }) => {
   if (!user) {
     return (
       <Text as="span" color="fg.muted">

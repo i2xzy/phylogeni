@@ -13,6 +13,8 @@ import { InputGroup } from '~/components/ui/input-group';
 import { SegmentedControl } from '~/components/ui/segmented-control';
 import { CladeDetails, RevisionMode, RevisionWithUser } from '~/types/database';
 import RevisionFeedItem from './RevisionFeedItem';
+import RevisionGroupItem from './RevisionGroupItem';
+import { groupRevisions, isGroupCollapsible } from './groupRevisions';
 // TODO: restore with the "show child nodes" history filter
 // import { CheckboxCheckedChangeDetails } from '@chakra-ui/react';
 // import { useRouter, useSearchParams } from 'next/navigation';
@@ -77,6 +79,10 @@ export const CladeHistoryTable = ({
       return haystack.includes(q);
     });
   }, [rows, modeFilter, searchText]);
+
+  // Collapse a burst of same-user, same-mode edits (e.g. a bulk reclassification)
+  // into one expandable line, while single revisions render as before.
+  const groups = useMemo(() => groupRevisions(filteredRows), [filteredRows]);
 
   return (
     <Stack width="full" gap="6">
@@ -150,13 +156,19 @@ export const CladeHistoryTable = ({
 
       {filteredRows.length > 0 ? (
         <Stack gap="0">
-          {filteredRows.map((item) => (
-            <RevisionFeedItem
-              key={item.id}
-              revision={item}
-              currentClade={clade}
-            />
-          ))}
+          {groups.map((group) =>
+            isGroupCollapsible(group) ? (
+              <RevisionGroupItem key={group.key} group={group} />
+            ) : (
+              group.revisions.map((revision) => (
+                <RevisionFeedItem
+                  key={revision.id}
+                  revision={revision}
+                  currentClade={clade}
+                />
+              ))
+            )
+          )}
         </Stack>
       ) : (
         <Box paddingY="3rem" textAlign="center" color="fg.muted">
