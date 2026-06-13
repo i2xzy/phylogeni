@@ -176,32 +176,33 @@ export default function RelationshipsPanel({
         </Card.Body>
       </Card.Root>
 
-      <Card.Root borderColor="border.error">
-        <Card.Header>
-          <Heading size="md" color="fg.error">
-            Delete this clade
-          </Heading>
-          <Card.Description>
-            {isRootWithChildren
-              ? `${clade.name} is a root clade with children. Move or delete its children before deleting it.`
-              : childCount > 0
+      {/* A root with children can't be deleted (its children would be
+          orphaned), so hide the section entirely rather than disabling it. */}
+      {!isRootWithChildren && (
+        <Card.Root borderColor="border.error">
+          <Card.Header>
+            <Heading size="md" color="fg.error">
+              Delete this clade
+            </Heading>
+            <Card.Description>
+              {childCount > 0
                 ? `Removes ${clade.name} from the tree. Its children move up to ${destination}.`
                 : `Removes ${clade.name} from the tree.`}
-          </Card.Description>
-        </Card.Header>
-        <Card.Body>
-          <Button
-            type="button"
-            alignSelf="flex-start"
-            colorPalette="red"
-            variant="outline"
-            disabled={isRootWithChildren}
-            onClick={() => setConfirmOpen(true)}
-          >
-            <LuTrash2 /> Delete clade
-          </Button>
-        </Card.Body>
-      </Card.Root>
+            </Card.Description>
+          </Card.Header>
+          <Card.Body>
+            <Button
+              type="button"
+              alignSelf="flex-start"
+              colorPalette="red"
+              variant="outline"
+              onClick={() => setConfirmOpen(true)}
+            >
+              <LuTrash2 /> Delete clade
+            </Button>
+          </Card.Body>
+        </Card.Root>
+      )}
 
       <DialogRoot
         role="alertdialog"
