@@ -32,7 +32,7 @@ const groupSubjects = (group: RevisionGroup): Subject[] => {
 const SubjectList = ({ subjects }: { subjects: Subject[] }) => (
   <>
     {subjects.map((s, i) => (
-      <Fragment key={i}>
+      <Fragment key={s.id ?? `name:${s.name}`}>
         {i > 0 && (i === subjects.length - 1 ? ' and ' : ', ')}
         <CladeRef id={s.id} fallbackName={s.name} />
       </Fragment>

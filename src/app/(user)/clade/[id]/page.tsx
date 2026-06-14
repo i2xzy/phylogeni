@@ -40,7 +40,7 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
     return null;
   }
 
-  const hasCommonNames = Boolean(data.common_names?.length);
+  const commonNames = data.common_names ?? [];
 
   // console.log(data);
 
@@ -77,11 +77,11 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
           <Separator />
         </Stack>
 
-        {data.common_names && data.common_names.length > 0 && (
+        {commonNames.length > 0 && (
           <Text color="fg.muted">
             Also known as{' '}
             <Text as="span" color="fg">
-              {data.common_names.join(', ')}
+              {commonNames.join(', ')}
             </Text>
           </Text>
         )}
@@ -96,7 +96,9 @@ export default async function CladePage({ params }: PageProps<'/clade/[id]'>) {
             </Markdown>
           </Stack>
         )}
-        {!data.description && !hasCommonNames && <Text>No description</Text>}
+        {!data.description && commonNames.length === 0 && (
+          <Text>No description</Text>
+        )}
       </Stack>
 
       <Box w="sm" hideBelow="md" />
