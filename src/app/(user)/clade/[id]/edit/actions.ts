@@ -208,23 +208,14 @@ export async function deleteClade(
   // Reparent the children to the grandparent, delete the clade, and write the
   // DELETE + per-child MOVE revisions — all in one transaction (the RPC also
   // re-checks editor access and the root-with-children guard). It returns the
-  // parent and reparented child ids so we know which pages to revalidate.
+  // ids of the other clades whose pages are now stale (grandparent + promoted
+  // children) so we revalidate exactly those.
   const { data, error } = await supabase.rpc('delete_clade', {
     p_clade_id: id,
   });
   if (error) return { error: error.message };
 
-  const affected = data as {
-    parent_id: number | null;
-    child_ids: number[];
-  } | null;
-
-  if (affected?.parent_id != null) {
-    revalidatePath(`/clade/${affected.parent_id}`);
-  }
-  affected?.child_ids?.forEach((childId) =>
-    revalidatePath(`/clade/${childId}`)
-  );
-  revalidatePath(`/clade/${id}`);
+  const affectedIds = (data as number[] | null) ?? [];
+  [...affectedIds, id].forEach((cid) => revalidatePath(`/clade/${cid}`));
   revalidatePath('/tree');
 }
