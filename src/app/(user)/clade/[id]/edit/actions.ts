@@ -205,28 +205,26 @@ export async function deleteClade(
   if (!auth.ok) return { error: auth.error };
   const { supabase } = auth;
 
-  // Grab the parent and child ids up front, only so we can revalidate their
-  // pages after the delete. The mutation itself happens in the RPC.
-  const { data: clade } = await supabase
-    .from('taxa')
-    .select('id, parent_id')
-    .eq('id', id)
-    .maybeSingle();
-  if (!clade) return { error: 'Clade not found.' };
-  const { data: children } = await supabase
-    .from('taxa')
-    .select('id')
-    .eq('parent_id', id);
-
   // Reparent the children to the grandparent, delete the clade, and write the
   // DELETE + per-child MOVE revisions — all in one transaction (the RPC also
-  // re-checks editor access and the root-with-children guard). This avoids the
-  // partial states a multi-statement client sequence could leave behind.
-  const { error } = await supabase.rpc('delete_clade', { p_clade_id: id });
+  // re-checks editor access and the root-with-children guard). It returns the
+  // parent and reparented child ids so we know which pages to revalidate.
+  const { data, error } = await supabase.rpc('delete_clade', {
+    p_clade_id: id,
+  });
   if (error) return { error: error.message };
 
-  if (clade.parent_id != null) revalidatePath(`/clade/${clade.parent_id}`);
-  (children ?? []).forEach((child) => revalidatePath(`/clade/${child.id}`));
+  const affected = data as {
+    parent_id: number | null;
+    child_ids: number[];
+  } | null;
+
+  if (affected?.parent_id != null) {
+    revalidatePath(`/clade/${affected.parent_id}`);
+  }
+  affected?.child_ids?.forEach((childId) =>
+    revalidatePath(`/clade/${childId}`)
+  );
   revalidatePath(`/clade/${id}`);
   revalidatePath('/tree');
 }
