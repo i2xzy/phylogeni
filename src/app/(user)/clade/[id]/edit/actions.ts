@@ -207,82 +207,32 @@ export async function deleteClade(
 ): Promise<{ error: string } | void> {
   const auth = await requireEditor();
   if (!auth.ok) return { error: auth.error };
-  const { user, supabase } = auth;
+  const { supabase } = auth;
 
+  // Grab the parent and child ids up front, only so we can revalidate their
+  // pages after the delete. The mutation itself happens in the RPC.
   const { data: clade } = await supabase
     .from('taxa')
-    .select('*')
+    .select('id, parent_id')
     .eq('id', input.id)
     .maybeSingle();
   if (!clade) return { error: 'Clade not found.' };
-
-  // Children are promoted one level up (reparented to this clade's parent), so
-  // a root with children can't be deleted — it would orphan them into roots.
   const { data: children } = await supabase
     .from('taxa')
-    .select('*')
+    .select('id')
     .eq('parent_id', input.id);
-  const childRows = children ?? [];
-  if (clade.parent_id == null && childRows.length > 0) {
-    return {
-      error:
-        'This is a root clade with children. Move or delete its children before deleting it.',
-    };
-  }
 
-  // Reparent the children first so they survive the delete; only then is the
-  // clade childless and safe to remove.
-  if (childRows.length > 0) {
-    const { error: reparentError } = await supabase
-      .from('taxa')
-      .update({ parent_id: clade.parent_id })
-      .eq('parent_id', input.id);
-    if (reparentError) return { error: reparentError.message };
-  }
-
-  const { data: deleted, error: deleteError } = await supabase
-    .from('taxa')
-    .delete()
-    .eq('id', input.id)
-    .select('id');
-  if (deleteError) return { error: deleteError.message };
-  // RLS blocks silently (no error, zero rows). The row existed above, so an
-  // empty result means the delete policy denied it.
-  if (!deleted || deleted.length === 0) {
-    return { error: 'You need editor access to delete this clade.' };
-  }
-
-  // Record the deletion (clade_id is null — the row is gone — so the feed reads
-  // the name from the `before` snapshot) plus a MOVE for each promoted child.
-  const revisions = [
-    {
-      clade_id: null,
-      target_clade_id: clade.parent_id,
-      user_id: user.id,
-      mode: 'DELETE' as const,
-      changed_fields: [],
-      before: snapshot(clade),
-      after: null,
-    },
-    ...childRows.map((child) => ({
-      clade_id: child.id,
-      target_clade_id: clade.parent_id,
-      user_id: user.id,
-      mode: 'MOVE' as const,
-      changed_fields: ['parent_id'],
-      before: snapshot(child),
-      after: snapshot({ ...child, parent_id: clade.parent_id }),
-    })),
-  ];
-  const { error: revisionError } = await supabase
-    .from('clade_revisions')
-    .insert(revisions);
-  if (revisionError) {
-    // The delete succeeded; a missing revision shouldn't block the user.
-    console.error('Failed to record clade revision', revisionError);
-  }
+  // Reparent the children to the grandparent, delete the clade, and write the
+  // DELETE + per-child MOVE revisions — all in one transaction (the RPC also
+  // re-checks editor access and the root-with-children guard). This avoids the
+  // partial states a multi-statement client sequence could leave behind.
+  const { error } = await supabase.rpc('delete_clade', {
+    p_clade_id: input.id,
+  });
+  if (error) return { error: error.message };
 
   if (clade.parent_id != null) revalidatePath(`/clade/${clade.parent_id}`);
-  childRows.forEach((child) => revalidatePath(`/clade/${child.id}`));
+  (children ?? []).forEach((child) => revalidatePath(`/clade/${child.id}`));
+  revalidatePath(`/clade/${input.id}`);
   revalidatePath('/tree');
 }

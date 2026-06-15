@@ -350,6 +350,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      delete_clade: { Args: { p_clade_id: number }; Returns: undefined };
       fetch_subtree: {
         Args: { root_id: number };
         Returns: {
