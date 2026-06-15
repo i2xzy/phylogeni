@@ -24,7 +24,12 @@ export const groupRevisions = (
   for (const row of rows) {
     const group = groups[groups.length - 1];
     const prev = group?.revisions[group.revisions.length - 1];
-    const sameUser = (group?.user?.id ?? null) === (row.user?.id ?? null);
+    // Never group revisions with no known user — two different deleted/legacy
+    // users would both be null and merge into one bogus action.
+    const groupUserId = group?.user?.id ?? null;
+    const rowUserId = row.user?.id ?? null;
+    const sameUser =
+      groupUserId != null && rowUserId != null && groupUserId === rowUserId;
     const sameMode = group?.mode === row.mode;
     const closeInTime =
       prev != null &&

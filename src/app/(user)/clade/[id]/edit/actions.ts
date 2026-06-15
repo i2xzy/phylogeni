@@ -216,6 +216,9 @@ export async function deleteClade(
   if (error) return { error: error.message };
 
   const affectedIds = (data as number[] | null) ?? [];
-  [...affectedIds, id].forEach((cid) => revalidatePath(`/clade/${cid}`));
+  [...affectedIds, id].forEach((cid) => {
+    revalidatePath(`/clade/${cid}`);
+    revalidatePath(`/clade/${cid}/revisions`);
+  });
   revalidatePath('/tree');
 }
