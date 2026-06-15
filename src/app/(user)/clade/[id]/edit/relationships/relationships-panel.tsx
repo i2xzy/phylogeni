@@ -63,7 +63,7 @@ export default function RelationshipsPanel({
 
   const remove = () => {
     startDeleteTransition(async () => {
-      const result = await deleteClade({ id: clade.id });
+      const result = await deleteClade(clade.id);
       if (result?.error) {
         toaster.create({
           title: 'Could not delete clade',

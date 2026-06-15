@@ -27,10 +27,6 @@ export type MoveCladeInput = {
   newParentId: number;
 };
 
-export type DeleteCladeInput = {
-  id: number;
-};
-
 const snapshot = (row: Clade): CladeSnapshot => ({
   id: row.id,
   name: row.name,
@@ -203,7 +199,7 @@ export async function moveClade(
 }
 
 export async function deleteClade(
-  input: DeleteCladeInput
+  id: number
 ): Promise<{ error: string } | void> {
   const auth = await requireEditor();
   if (!auth.ok) return { error: auth.error };
@@ -214,25 +210,23 @@ export async function deleteClade(
   const { data: clade } = await supabase
     .from('taxa')
     .select('id, parent_id')
-    .eq('id', input.id)
+    .eq('id', id)
     .maybeSingle();
   if (!clade) return { error: 'Clade not found.' };
   const { data: children } = await supabase
     .from('taxa')
     .select('id')
-    .eq('parent_id', input.id);
+    .eq('parent_id', id);
 
   // Reparent the children to the grandparent, delete the clade, and write the
   // DELETE + per-child MOVE revisions — all in one transaction (the RPC also
   // re-checks editor access and the root-with-children guard). This avoids the
   // partial states a multi-statement client sequence could leave behind.
-  const { error } = await supabase.rpc('delete_clade', {
-    p_clade_id: input.id,
-  });
+  const { error } = await supabase.rpc('delete_clade', { p_clade_id: id });
   if (error) return { error: error.message };
 
   if (clade.parent_id != null) revalidatePath(`/clade/${clade.parent_id}`);
   (children ?? []).forEach((child) => revalidatePath(`/clade/${child.id}`));
-  revalidatePath(`/clade/${input.id}`);
+  revalidatePath(`/clade/${id}`);
   revalidatePath('/tree');
 }
