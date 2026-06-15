@@ -1,4 +1,4 @@
-import { Container, Heading, Stack } from '@chakra-ui/react';
+import { Box, Container, Heading, Stack } from '@chakra-ui/react';
 import { Metadata } from 'next';
 import NextLink from 'next/link';
 import { ReactNode } from 'react';
@@ -8,6 +8,7 @@ import {
   BreadcrumbLink,
   BreadcrumbRoot,
 } from '~/components/ui/breadcrumb';
+import { ScrollArea } from '~/components/ui/scroll-area';
 
 import { getCladeName } from '../../get-clade-name';
 import EditTabs from './edit-tabs';
@@ -35,12 +36,14 @@ export default async function CladeEditLayout({
       <Stack
         width="full"
         flex="1"
-        minHeight="var(--content-height)"
-        overflow="auto"
+        // Header is 72px (matches the tree view); pin to the rest of the
+        // viewport so only the tab content below scrolls.
+        height="calc(100vh - 72px)"
+        overflow="hidden"
         p={8}
         gap={6}
       >
-        <Stack gap={2}>
+        <Stack gap={2} flexShrink={0}>
           <BreadcrumbRoot>
             <BreadcrumbLink asChild>
               <NextLink href={`/clade/${clade.id}`}>{clade.name}</NextLink>
@@ -50,9 +53,13 @@ export default async function CladeEditLayout({
           <Heading size="lg">Editing {clade.name}</Heading>
         </Stack>
 
-        <EditTabs />
+        <Box flexShrink={0}>
+          <EditTabs />
+        </Box>
 
-        {children}
+        <ScrollArea flex="1" minH={0} contentProps={{ pe: 5 }}>
+          {children}
+        </ScrollArea>
       </Stack>
     </Container>
   );

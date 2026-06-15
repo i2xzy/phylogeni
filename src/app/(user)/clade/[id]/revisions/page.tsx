@@ -1,4 +1,4 @@
-import { Box } from '@chakra-ui/react';
+import { Container, Stack } from '@chakra-ui/react';
 
 import { CladeHistoryTable } from '~/lib/components/CladeHistoryTable/CladeHistoryTable';
 
@@ -14,13 +14,10 @@ export default async function CladeRevisionsPage({
   const clade = await getCladeById(id);
 
   return (
-    <Box
-      mdDown={{ paddingX: '0.8rem' }}
-      paddingX="6rem"
-      paddingTop={6}
-      paddingBottom={16}
-    >
-      <CladeHistoryTable rows={revisions} clade={clade} />
-    </Box>
+    <Container display="flex" maxW="8xl">
+      <Stack maxW="5xl" width="full" flex="1" p={8} gap={8}>
+        <CladeHistoryTable rows={revisions} clade={clade} />
+      </Stack>
+    </Container>
   );
 }

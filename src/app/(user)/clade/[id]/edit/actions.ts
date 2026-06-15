@@ -197,3 +197,33 @@ export async function moveClade(
   revalidatePath(`/clade/${input.newParentId}`);
   revalidatePath('/tree');
 }
+
+export async function deleteClade(
+  id: number
+): Promise<{ error: string } | void> {
+  const auth = await requireEditor();
+  if (!auth.ok) return { error: auth.error };
+  const { supabase } = auth;
+
+  // Reparent the children to the grandparent, delete the clade, and write the
+  // DELETE + per-child MOVE revisions — all in one transaction (the RPC also
+  // re-checks editor access and the root-with-children guard). It returns the
+  // ids of the other clades whose pages are now stale (grandparent + promoted
+  // children) so we revalidate exactly those.
+  const { data, error } = await supabase.rpc('delete_clade', {
+    p_clade_id: id,
+  });
+  if (error) return { error: error.message };
+
+  // The grandparent and promoted children changed: refresh both their clade
+  // page and revision history.
+  const affectedIds = (data as number[] | null) ?? [];
+  affectedIds.forEach((cid) => {
+    revalidatePath(`/clade/${cid}`);
+    revalidatePath(`/clade/${cid}/revisions`);
+  });
+  // The deleted clade's page now 404s — bust its cache so a back-navigation
+  // doesn't show a stale copy. Its revisions page is gone with it.
+  revalidatePath(`/clade/${id}`);
+  revalidatePath('/tree');
+}
