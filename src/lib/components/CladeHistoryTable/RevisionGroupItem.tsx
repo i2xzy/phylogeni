@@ -5,6 +5,7 @@ import { Fragment } from 'react';
 
 import { Avatar } from '~/components/ui/avatar';
 import { formatDateTime } from '~/lib/utils/date';
+import { listSeparator } from '~/lib/utils/list';
 
 import { CladeRef, UserRef } from './RevisionFeedItem';
 import { RevisionGroup, subjectKey } from './groupRevisions';
@@ -33,7 +34,7 @@ const SubjectList = ({ subjects }: { subjects: Subject[] }) => (
   <>
     {subjects.map((s, i) => (
       <Fragment key={s.id ?? `name:${s.name}`}>
-        {i > 0 && (i === subjects.length - 1 ? ' and ' : ', ')}
+        {listSeparator(i, subjects.length)}
         <CladeRef id={s.id} fallbackName={s.name} />
       </Fragment>
     ))}

@@ -18,17 +18,12 @@ import {
   DialogFooter,
 } from '~/components/ui/dialog';
 import { rankLabel } from '~/lib/constants/ranks';
+import { formatNameList } from '~/lib/utils/list';
 
 import CladeSearchSelect, {
   type SelectedClade,
 } from '../../../clade-search-select';
 import { moveClade, deleteClade } from '../actions';
-
-// "A", "A and B", or "A, B and C" (no Oxford comma).
-const formatNameList = (names: string[]): string =>
-  names.length <= 1
-    ? names.join('')
-    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 
 export default function RelationshipsPanel({
   clade,
