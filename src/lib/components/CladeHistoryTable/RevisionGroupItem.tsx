@@ -7,7 +7,7 @@ import { Avatar } from '~/components/ui/avatar';
 import { formatDateTime } from '~/lib/utils/date';
 import { listSeparator } from '~/lib/utils/list';
 
-import { CladeRef, UserRef } from './RevisionFeedItem';
+import { CladeRef, UserRef } from './RevisionRefs';
 import { RevisionGroup, subjectKey } from './groupRevisions';
 
 type Subject = { id: number | null; name: string | null };

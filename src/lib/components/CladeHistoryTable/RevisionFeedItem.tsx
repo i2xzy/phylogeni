@@ -2,48 +2,11 @@
 
 import { HStack, Stack, Text } from '@chakra-ui/react';
 import { Avatar } from '~/components/ui/avatar';
-import { TextLink } from '~/components/ui/text-link';
 import { CladeDetails, RevisionWithUser } from '~/types/database';
 import { formatDateTime } from '~/lib/utils/date';
+
 import ChangesDialog from './ChangesDialog';
-
-export const CladeRef = ({
-  id,
-  fallbackName,
-}: {
-  id: number | null;
-  fallbackName?: string | null;
-}) => {
-  const label = fallbackName ?? (id != null ? `clade ${id}` : 'unknown clade');
-  if (id == null) {
-    return (
-      <Text as="span" fontWeight="medium">
-        {label}
-      </Text>
-    );
-  }
-  return (
-    <TextLink href={`/clade/${id}`} fontWeight="medium">
-      {label}
-    </TextLink>
-  );
-};
-
-export const UserRef = ({ user }: { user: RevisionWithUser['user'] }) => {
-  if (!user) {
-    return (
-      <Text as="span" color="fg.muted">
-        [deleted user]
-      </Text>
-    );
-  }
-  const label = user.username ?? user.full_name ?? 'someone';
-  return (
-    <TextLink href={`/user/${user.username ?? user.id}`} fontWeight="medium">
-      {label}
-    </TextLink>
-  );
-};
+import { CladeRef, UserRef } from './RevisionRefs';
 
 const RevisionSentence = ({ revision }: { revision: RevisionWithUser }) => {
   const cladeName = revision.before?.name ?? revision.after?.name;
