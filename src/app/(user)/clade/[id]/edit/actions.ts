@@ -215,10 +215,15 @@ export async function deleteClade(
   });
   if (error) return { error: error.message };
 
+  // The grandparent and promoted children changed: refresh both their clade
+  // page and revision history.
   const affectedIds = (data as number[] | null) ?? [];
-  [...affectedIds, id].forEach((cid) => {
+  affectedIds.forEach((cid) => {
     revalidatePath(`/clade/${cid}`);
     revalidatePath(`/clade/${cid}/revisions`);
   });
+  // The deleted clade's page now 404s — bust its cache so a back-navigation
+  // doesn't show a stale copy. Its revisions page is gone with it.
+  revalidatePath(`/clade/${id}`);
   revalidatePath('/tree');
 }
