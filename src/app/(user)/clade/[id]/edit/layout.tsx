@@ -43,7 +43,6 @@ export default async function CladeEditLayout({
         p={8}
         gap={6}
       >
-        {/* Header and tabs stay put; only the tab content below scrolls. */}
         <Stack gap={2} flexShrink={0}>
           <BreadcrumbRoot>
             <BreadcrumbLink asChild>

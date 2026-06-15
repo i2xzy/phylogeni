@@ -177,8 +177,6 @@ export default function RelationshipsPanel({
         </Card.Body>
       </Card.Root>
 
-      {/* A root with children can't be deleted (its children would be
-          orphaned), so hide the section entirely rather than disabling it. */}
       {!isRootWithChildren && (
         <Card.Root borderColor="border.error">
           <Card.Header>
