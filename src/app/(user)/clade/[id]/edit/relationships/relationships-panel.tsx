@@ -24,6 +24,12 @@ import CladeSearchSelect, {
 } from '../../../clade-search-select';
 import { moveClade, deleteClade } from '../actions';
 
+// "A", "A and B", or "A, B and C" (no Oxford comma).
+const formatNameList = (names: string[]): string =>
+  names.length <= 1
+    ? names.join('')
+    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+
 export default function RelationshipsPanel({
   clade,
   parentName,
@@ -51,14 +57,14 @@ export default function RelationshipsPanel({
   const isRootWithChildren = clade.parent_id == null && childCount > 0;
   const destination =
     parentName ?? (clade.parent_id != null ? `clade ${clade.parent_id}` : null);
+  // Name the children explicitly so the editor sees exactly what moves.
+  const childList = formatNameList(childClades.map((c) => c.name));
   const deleteConsequence =
     childCount === 0
       ? `This permanently deletes ${clade.name} and can't be undone.`
-      : `Its ${childCount} child ${
-          childCount === 1 ? 'clade' : 'clades'
-        } will be moved under ${destination}, then ${
-          clade.name
-        } is permanently deleted. This can't be undone.`;
+      : childCount === 1
+        ? `Its child ${childList} will be moved under ${destination}, then ${clade.name} is permanently deleted. This can't be undone.`
+        : `Its ${childCount} children (${childList}) will be moved under ${destination}, then ${clade.name} is permanently deleted. This can't be undone.`;
 
   const remove = () => {
     startDeleteTransition(async () => {
