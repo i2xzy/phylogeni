@@ -6,11 +6,25 @@ import { redirect } from 'next/navigation';
 
 import { createClient } from '~/lib/utils/supabase/server';
 
+// Absolute origin of the current request. Vercel sets x-forwarded-proto/host;
+// fall back to http only for local dev. Supabase redirect targets must be
+// absolute and exactly match an allowlisted URL — hardcoding http:// makes the
+// production target miss the allowlist, so Supabase falls back to the Site URL
+// and the auth code lands on `/` instead of /auth/callback.
+async function getOrigin() {
+  const h = await headers();
+  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
+  const proto =
+    h.get('x-forwarded-proto') ??
+    (host.startsWith('localhost') ? 'http' : 'https');
+  return `${proto}://${host}`;
+}
+
 export async function signInWithOAuth(
   _: { message: string },
   formData: FormData
 ) {
-  const host = (await headers()).get('x-forwarded-host') || 'localhost:3000';
+  const origin = await getOrigin();
   const supabase = await createClient();
 
   // type-casting here for convenience
@@ -22,7 +36,7 @@ export async function signInWithOAuth(
   const { data: response, error } = await supabase.auth.signInWithOAuth({
     provider: data.provider,
     options: {
-      redirectTo: `http://${host}/auth/callback`,
+      redirectTo: `${origin}/auth/callback`,
     },
   });
 
@@ -41,6 +55,7 @@ export async function signInWithOtp(
   _: { message: string },
   formData: FormData
 ) {
+  const origin = await getOrigin();
   const supabase = await createClient();
 
   // type-casting here for convenience
@@ -52,7 +67,7 @@ export async function signInWithOtp(
   const { error } = await supabase.auth.signInWithOtp({
     email: data.email,
     options: {
-      emailRedirectTo: '/auth/confirm',
+      emailRedirectTo: `${origin}/auth/confirm`,
     },
   });
 
